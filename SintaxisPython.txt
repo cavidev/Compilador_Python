@@ -1,43 +1,4 @@
-#Código de prueba para Análisis Sintáctico
-# comentario en bloque
-""" Ejemplo de comentario
-en muchas lineas.
-"""
-
-#Aceptacion de valores primarios
-numero = 123
-numeroFlotante = 123.321
-palabras = "Hola Mundo"
-char = 'h'
-
-#Calcular factorial, funciones
-def calcularFac(num):
-    num_aux = 0
-    if (num < 1):
-        num_aux = 1
-    else:
-        num_aux = num * (calcularFac(num-1))
-    return num_aux
-
-#Declaracion de listas.
-ventas = [100,200,300,400,500]
-
-#promedio de elementos
-def promedio(cualquier_arreglo):
-    tam = len(cualquier_arreglo)
-    resultado=0
-    #ciclo para recorrer arreglo
-    cont = 0
-    sumatoria = 0
-    while (cont <= tam-1):
-        sumatoria = sumatoria + cualquier_arreglo[cont]
-        cont = 1
-    return resultado
-
-def calcularpromedioventas():
-    prom = promedio(ventas)
-    print("El promedio de las ventas es: ")
-    print(prom)
-
-print("Calculo del Factorial: " + calcularFac(6))
-calcularpromedioventas()
+m = a * 9
+c = [1,2,3]
+v = "Villa"
+x = 'c'

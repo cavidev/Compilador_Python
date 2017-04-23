@@ -1,6 +1,7 @@
 /**
  * Created by Carlos Mario on 18/3/2017.
  */
+import analizador.analizadorContextual;
 import arbol.Arbol;
 import arbol.ArbolSinNodos;
 import generated.*;
@@ -32,10 +33,13 @@ public class Main {
 
             ArbolSinNodos arbol = new ArbolSinNodos();
             arbol.visit(tree);
+
+            //analizadorContextual aContextual =  new analizadorContextual();
+            //aContextual.visit(tree);
         }
         catch(Exception e){
             System.out.println("No hay archivo");
-            System.out.println(e.getCause());
+            System.out.println(e);
         }
     }
 }
