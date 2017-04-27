@@ -11,7 +11,8 @@ import java.util.ArrayList;
  */
 public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
-    private int INT = 1, STRING = 2, CHAR = 3, LISTA = 4, ID = 5, SUMA , RESTA;
+    private int INT = 1, STRING = 2, CHAR = 3, LISTA = 4, ID = 5,
+            MUL= 6, DIV= 7, SUMA = 8 , RESTA = 9;
 
     private TablaSimbolos tablaSimbolos;
 
@@ -20,10 +21,13 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
     private String variableAnalizar;            //Variable, controla si esta indefinida o no.
     private int profundidadScope;               //Profundidad en la que nos encontramos en el Scope.
 
+    private ArrayList<Object> listaSimbolosAsignacion; //lista de los simbolos en las asignaciones.
+
 
     public analizadorContextual() {
         this.tablaSimbolos = new TablaSimbolos();
         this.scopes = new ArrayList<>();
+        this.listaSimbolosAsignacion = new ArrayList<>();
 
         this.nombreVariable = null;
         this.variableAnalizar = null;
@@ -198,13 +202,84 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
         return null;
     }
 
+    /**
+     * Se encuentra el nombre de la variable a asignar y se guarda globalmente.
+     * @param ctx
+     * @return
+     */
     @Override
     public Object visitAsignacion(MyParser.AsignacionContext ctx)  {
 
         nombreVariable = ctx.IDENTIFIER().getText().toString();
+        visit(ctx.expression()); //Realiza las visitas, tendrá que ir llenando una lista con los tokens.
 
-        visit(ctx.expression());
+        //Código para la validaciones de asignaciones.
+        TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
+        int tamanoListaSimbolos = this.listaSimbolosAsignacion.size();
 
+        if (tamanoListaSimbolos == 1) {
+            if (i != null) {
+                int tipoTabla = i.tok.getType();
+                if (tipoTabla != (int) this.listaSimbolosAsignacion.get(0)) {
+                    System.out.println("Tipos incompatibles en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                            " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
+                }
+            } else {
+                tablaSimbolos.insertar(nombreVariable, (int)this.listaSimbolosAsignacion.get(0), ctx);
+            }
+        } else if ( !isString(this.listaSimbolosAsignacion.get(tamanoListaSimbolos - 1))
+                && LISTA == (int) this.listaSimbolosAsignacion.get(tamanoListaSimbolos - 1)) {
+            if (i != null) {
+                int tipoTabla = i.tok.getType();
+
+                if (tipoTabla != LISTA) {
+                    System.out.println("Tipos incompatibles en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                            " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
+                }
+            } else {
+                tablaSimbolos.insertar(nombreVariable, LISTA, ctx);
+            }
+        } else if (tamanoListaSimbolos > 0) {
+            if (i != null) {
+                int tipoTabla = i.tok.getType();
+                if (tipoTabla == STRING) {
+                    for (int posicion = 0; posicion <= this.listaSimbolosAsignacion.size()-1; posicion += 2)
+                    {
+                        if ( posicion + 1 < this.listaSimbolosAsignacion.size()-1  &&
+                                (int) this.listaSimbolosAsignacion.get(posicion + 1 ) != SUMA) {
+                            print("El operador no funciona en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                                    " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
+                        }
+                        if (isString(this.listaSimbolosAsignacion.get(posicion))) {
+                            TablaSimbolos.Ident variable = tablaSimbolos.buscar((String) this.listaSimbolosAsignacion.get(posicion));
+                            if (variable == null) {
+                                print("Variable indefinida en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                                        " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
+                            } else {
+                                int tipoVariable = variable.tok.getType();
+                                if (tipoVariable != STRING) {
+                                    print("Error de tipos en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                                            " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
+                                }
+                            }
+                        } else {
+                            if ((int) this.listaSimbolosAsignacion.get(posicion) != STRING) {
+                                print("Error de tipos en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                                        " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        for (int posicion = 0; posicion <= this.listaSimbolosAsignacion.size()-1; posicion += 2)
+        {
+            print( this.listaSimbolosAsignacion.get(posicion) );
+        }
+
+        this.listaSimbolosAsignacion.clear();
         return null;
     }
 
@@ -280,6 +355,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
         for (int i=0; i <= ctx.multiplicationExpression().size()-1; i++)
         {
             visit(ctx.signosSumaResta(i));
+
             visit(ctx.multiplicationExpression(i));
         }
 
@@ -290,10 +366,14 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
     public Object visitSignosSumaResta(MyParser.SignosSumaRestaContext ctx) {
 
         if (ctx.RESTA() != null) {
-            return RESTA;
-        } else {
-            return SUMA;
+            this.listaSimbolosAsignacion.add(RESTA);
         }
+        if (ctx.SUMA() != null) {
+            this.listaSimbolosAsignacion.add(SUMA);
+        }
+
+        return null;
+
     }
 
     @Override
@@ -311,7 +391,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
         for (int i=0; i <= ctx.elementExpression().size()-1; i++)
         {
-            System.out.println( visit(ctx.signosOperativos(i)) );
+            this.listaSimbolosAsignacion.add( visit(ctx.signosOperativos(i)) );
             visit(ctx.elementExpression(i));
         }
 
@@ -320,23 +400,19 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitSignosOperativos(MyParser.SignosOperativosContext ctx) {
-        // * /
-
-        return null;
+        if (ctx.MUL() != null) {
+            return MUL;
+        } else {
+            return DIV;
+        }
     }
 
     @Override
     public Object visitExpresionElemento(MyParser.ExpresionElementoContext ctx) {
 
         Object variable = visit(ctx.primitiveExpression());
+        this.listaSimbolosAsignacion.add(variable);
         visit(ctx.elementAccess());
-
-        print(variable);
-        if (this.variableAnalizar != null) {
-
-        }
-
-        this.variableAnalizar = null;
 
         return null;
     }
@@ -389,7 +465,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitExpresionPrimitivaINT(MyParser.ExpresionPrimitivaINTContext ctx) {
-        System.out.println(ctx.INTEGER().getSymbol().getText());
+        /*
         if (nombreVariable != null) {
             TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
             if (i != null) {
@@ -405,13 +481,13 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
             }
         }
         nombreVariable = null;
-
+        */
         return INT;
     }
 
     @Override
     public Object visitExpresionPrimitivaSTRING(MyParser.ExpresionPrimitivaSTRINGContext ctx) {
-
+        /*
         if (nombreVariable != null) {
             TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
             if (i != null) {
@@ -426,22 +502,27 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
             }
         }
         nombreVariable = null;
-
-        return null;
+        */
+        return STRING;
     }
 
+    /**
+     * Cuando se ejecuta la expresion m = a +* b devuelve a, b
+     * @param ctx
+     * @return
+     */
     @Override
     public Object visitExpresionPrimitivaID(MyParser.ExpresionPrimitivaIDContext ctx) {
         //Retorno la variable para buscarla.
         variableAnalizar = ctx.IDENTIFIER().getText();
-        System.out.println(ctx.getClass().getSimpleName() + " Token: " + ctx.IDENTIFIER().getText());
+        System.out.println(ctx.getClass().getSimpleName() + " Token: " + variableAnalizar);
 
         return variableAnalizar;
     }
 
     @Override
     public Object visitExpresionPrimitivaCHAR(MyParser.ExpresionPrimitivaCHARContext ctx) {
-
+        /*
         if (nombreVariable != null) {
             TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
             if (i != null) {
@@ -456,8 +537,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
             }
         }
         nombreVariable = null;
-
-        return null;
+        */
+        return CHAR;
     }
 
     @Override
@@ -473,7 +554,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
         visit(ctx.listExpression());
 
-        return null;
+        return LISTA;
     }
 
     @Override
@@ -495,6 +576,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitListaExpresionesUltima(MyParser.ListaExpresionesUltimaContext ctx) {
 
+        /* print("Estoy en lista");
         if (nombreVariable != null) {
             TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
             if (i != null) {
@@ -509,7 +591,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
             }
         }
         nombreVariable = null;
-
+        */
         visit(ctx.expressionList());
 
         return null;

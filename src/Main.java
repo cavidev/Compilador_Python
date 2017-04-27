@@ -31,11 +31,11 @@ public class Main {
 
             ParseTree tree = parser.program();
 
-            ArbolSinNodos arbol = new ArbolSinNodos();
-            arbol.visit(tree);
+            //ArbolSinNodos arbol = new ArbolSinNodos();
+            //arbol.visit(tree);
 
-            //analizadorContextual aContextual =  new analizadorContextual();
-            //aContextual.visit(tree);
+            analizadorContextual aContextual =  new analizadorContextual();
+            aContextual.visit(tree);
         }
         catch(Exception e){
             System.out.println("No hay archivo");

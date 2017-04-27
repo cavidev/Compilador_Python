@@ -1,4 +1,4 @@
-m = a * 9
-c = [1,2,3]
-v = "Villa"
-x = 'c'
+m = "Carlos"
+b = "Carlos"
+m = "Mario" * b
+
