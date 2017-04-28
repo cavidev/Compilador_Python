@@ -1,4 +1,4 @@
-m = "Carlos"
-b = "Carlos"
-m = "Mario" * b
-
+a = "Algo"
+b = 5
+c = 'c'
+m = "carlos" + 'c'

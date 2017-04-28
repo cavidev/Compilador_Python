@@ -1,7 +1,11 @@
 package analizador;
 
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import generated.MyParser;
 import generated.MyParserBaseVisitor;
+import jdk.nashorn.internal.parser.Lexer;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
@@ -11,11 +15,13 @@ import java.util.ArrayList;
  */
 public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
-    private int INT = 1, STRING = 2, CHAR = 3, LISTA = 4, ID = 5,
+    private int VACIO = 0, INT = 1, STRING = 2, CHAR = 3, LISTA = 4, ID = 5,
             MUL= 6, DIV= 7, SUMA = 8 , RESTA = 9;
 
     private TablaSimbolos tablaSimbolos;
 
+    private Token primerSignoMD;
+    private Token primerSignoSR;
     private ArrayList<TablaSimbolos> scopes;    //Lista de los Scope en el texto
     private String nombreVariable;              //Guarda el nombre de la variable temporalmente.
     private String variableAnalizar;            //Variable, controla si esta indefinida o no.
@@ -153,7 +159,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
             System.out.println(" Parametro --> " + ctx.IDENTIFIER(i).getSymbol().getText());
 
-            DefaultMutableTreeNode hoja = new DefaultMutableTreeNode(ctx.IDENTIFIER(i).getSymbol().getText());
 
         }
 
@@ -208,78 +213,22 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
      * @return
      */
     @Override
-    public Object visitAsignacion(MyParser.AsignacionContext ctx)  {
+    public Object visitAsignacion(MyParser.AsignacionContext ctx) {
+        int nodoRaizAsignacion;
 
-        nombreVariable = ctx.IDENTIFIER().getText().toString();
-        visit(ctx.expression()); //Realiza las visitas, tendrá que ir llenando una lista con los tokens.
+        nodoRaizAsignacion = (int) visit(ctx.expression()); //Realiza las visitas, tendrá que ir llenando una lista con los tokens.
+        TablaSimbolos.Ident i = tablaSimbolos.buscar(ctx.IDENTIFIER().getText().toString());
+        if (i != null) {
+            int tipoTabla = i.tok.getType();
 
-        //Código para la validaciones de asignaciones.
-        TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
-        int tamanoListaSimbolos = this.listaSimbolosAsignacion.size();
-
-        if (tamanoListaSimbolos == 1) {
-            if (i != null) {
-                int tipoTabla = i.tok.getType();
-                if (tipoTabla != (int) this.listaSimbolosAsignacion.get(0)) {
-                    System.out.println("Tipos incompatibles en fila: " + ctx.ASIGN().getSymbol().getLine() +
-                            " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
-                }
-            } else {
-                tablaSimbolos.insertar(nombreVariable, (int)this.listaSimbolosAsignacion.get(0), ctx);
+            if (tipoTabla != STRING) {
+                System.out.println("Tipos incompatibles en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                        " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
             }
-        } else if ( !isString(this.listaSimbolosAsignacion.get(tamanoListaSimbolos - 1))
-                && LISTA == (int) this.listaSimbolosAsignacion.get(tamanoListaSimbolos - 1)) {
-            if (i != null) {
-                int tipoTabla = i.tok.getType();
-
-                if (tipoTabla != LISTA) {
-                    System.out.println("Tipos incompatibles en fila: " + ctx.ASIGN().getSymbol().getLine() +
-                            " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
-                }
-            } else {
-                tablaSimbolos.insertar(nombreVariable, LISTA, ctx);
-            }
-        } else if (tamanoListaSimbolos > 0) {
-            if (i != null) {
-                int tipoTabla = i.tok.getType();
-                if (tipoTabla == STRING) {
-                    for (int posicion = 0; posicion <= this.listaSimbolosAsignacion.size()-1; posicion += 2)
-                    {
-                        if ( posicion + 1 < this.listaSimbolosAsignacion.size()-1  &&
-                                (int) this.listaSimbolosAsignacion.get(posicion + 1 ) != SUMA) {
-                            print("El operador no funciona en fila: " + ctx.ASIGN().getSymbol().getLine() +
-                                    " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
-                        }
-                        if (isString(this.listaSimbolosAsignacion.get(posicion))) {
-                            TablaSimbolos.Ident variable = tablaSimbolos.buscar((String) this.listaSimbolosAsignacion.get(posicion));
-                            if (variable == null) {
-                                print("Variable indefinida en fila: " + ctx.ASIGN().getSymbol().getLine() +
-                                        " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
-                            } else {
-                                int tipoVariable = variable.tok.getType();
-                                if (tipoVariable != STRING) {
-                                    print("Error de tipos en fila: " + ctx.ASIGN().getSymbol().getLine() +
-                                            " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
-                                }
-                            }
-                        } else {
-                            if ((int) this.listaSimbolosAsignacion.get(posicion) != STRING) {
-                                print("Error de tipos en fila: " + ctx.ASIGN().getSymbol().getLine() +
-                                        " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
-                            }
-                        }
-
-                    }
-                }
-            }
+        } else {
+            tablaSimbolos.insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx);
         }
 
-        for (int posicion = 0; posicion <= this.listaSimbolosAsignacion.size()-1; posicion += 2)
-        {
-            print( this.listaSimbolosAsignacion.get(posicion) );
-        }
-
-        this.listaSimbolosAsignacion.clear();
         return null;
     }
 
@@ -315,23 +264,24 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitExpresion(MyParser.ExpresionContext ctx) {
-
-        visit(ctx.additionExpression());
+        int nodoIzquierdo, nodoDerecho;
+        nodoIzquierdo = (int) visit(ctx.additionExpression());
+        //todo: falta evaluar este nodo.
         visit(ctx.comparison());
 
-        return null;
+        return nodoIzquierdo;
     }
 
     @Override
     public Object visitComparacion(MyParser.ComparacionContext ctx) {
-
+        //Todo: falta evaluar esta parte del arbol.
         for (int i=0; i <= ctx.additionExpression().size()-1; i++)
         {
             visit(ctx.signosComparacion(i));
             visit(ctx.additionExpression(i));
         }
 
-        return null;
+        return 0;
     }
 
     @Override
@@ -342,90 +292,196 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitEspresionAderencia(MyParser.EspresionAderenciaContext ctx) {
+        int nodoIzquierdo, nodoDerecho;
 
-        visit(ctx.multiplicationExpression());
-        visit(ctx.additionFactor());
+        nodoIzquierdo = (int) visit(ctx.multiplicationExpression());
+        nodoDerecho = (int) visit(ctx.additionFactor());
 
-        return null;
+        if (nodoDerecho == VACIO){
+            return nodoIzquierdo;
+        }
+        if (nodoIzquierdo != nodoDerecho){/*
+        todo: capturar la excepción, de tipos incompatibles, no dejarlos hacer*/
+            print("Tipos incompatible en fila: " + primerSignoSR.getLine() +
+                    " columna: " + primerSignoSR.getCharPositionInLine());
+        } else {
+            return nodoIzquierdo;
+        }
+        primerSignoSR = null;
+        //Si sale bien, retorna el tipo si son iguales.
+        return nodoIzquierdo;
     }
 
     @Override
     public Object visitFactorAderencia(MyParser.FactorAderenciaContext ctx) {
-
+        /*
         for (int i=0; i <= ctx.multiplicationExpression().size()-1; i++)
         {
             visit(ctx.signosSumaResta(i));
-
-            visit(ctx.multiplicationExpression(i));
+            print ("La visita otra " + visit(ctx.multiplicationExpression(i)) );
+        }*/
+        //En el caso de que solo haya un elemento de m = a + b
+        if (ctx.multiplicationExpression().size() == 1) {
+            primerSignoSR = (Token) visit(ctx.signosSumaResta(0));
+            return visit(ctx.multiplicationExpression(0));
         }
+        //En el caso de que sea asignación m = a
+        if (ctx.multiplicationExpression().size() == 0) {
+            return VACIO;
+        }
+        /*
+        Compara cada visita para el caso de que haya mas variable m = a * b * c ...
+        y se asegura que sea int cada una de lo contrario tira la excepción
+         */
+        int nodoAnterior, nodoSiguiente;
 
-        return null;
+        nodoAnterior = (int) visit(ctx.multiplicationExpression(0));
+        Token signo = (Token) visit(ctx.signosSumaResta(1));
+
+        for (int i=1; i <= ctx.multiplicationExpression().size()-1; i++)
+        {
+            nodoSiguiente = (int) visit(ctx.multiplicationExpression(i));
+            if (nodoAnterior != nodoSiguiente) {
+                if (nodoAnterior == STRING && nodoSiguiente == STRING &&
+                        signo.getType() != 22){
+                    //todo: Capturar la excepción de que es "Carlos" *, / "Mario"
+                    print("Operador incompatible en fila: " + signo.getLine() +
+                            " columna: " + signo.getCharPositionInLine());
+                } else if (nodoAnterior == INT && nodoSiguiente == STRING ||
+                        nodoAnterior == STRING && nodoSiguiente == INT) {
+                    print("Tipos incompatible en fila: " + signo.getLine() +
+                            " columna: " + signo.getCharPositionInLine());
+                }
+            }
+            if (i+1 <= ctx.signosSumaResta( ).size()-1) {
+                signo = (Token) visit(ctx.signosSumaResta(i+1));
+            }
+            nodoAnterior = nodoSiguiente;
+        }
+        //Para el caso de que este bien.
+        return nodoAnterior;
     }
 
+    /**
+     * Retorna los tokens de los signos de suma y resta.
+     * @param ctx
+     * @return
+     */
     @Override
     public Object visitSignosSumaResta(MyParser.SignosSumaRestaContext ctx) {
 
         if (ctx.RESTA() != null) {
-            this.listaSimbolosAsignacion.add(RESTA);
+            return ctx.RESTA().getSymbol();
+        } else {
+            return ctx.SUMA().getSymbol();
         }
-        if (ctx.SUMA() != null) {
-            this.listaSimbolosAsignacion.add(SUMA);
-        }
-
-        return null;
-
     }
 
     @Override
     public Object visitExpresionMultiplicacion(MyParser.ExpresionMultiplicacionContext ctx) {
+        int nodoIzquierdo, nodoDerecho;
 
-        visit(ctx.elementExpression());
-        visit(ctx.multiplicationFactor());
+        nodoIzquierdo = (int) visit(ctx.elementExpression());
+        nodoDerecho = (int) visit(ctx.multiplicationFactor());
 
 
-        return null;
+        if (nodoDerecho == VACIO) {/*
+        Si el nodo de la derecho viene vacío significa que hay una asignación.
+        */
+            return nodoIzquierdo;
+        } else if (nodoIzquierdo == STRING || nodoDerecho == STRING) {/*
+                Si los nodos fueran incompatibles con la multiplicación
+                */
+            //todo: Capturar la excepción, aquí se esta cayendo por el null con a = "Carlos" + "Mario" * 3
+            print("Tipos incompatibles en fila: " + primerSignoMD.getLine() +
+                    " columna: " + primerSignoMD.getCharPositionInLine());
+            primerSignoMD = null;
+            return null;
+        } else {/*
+        Para el caso de que salga bien*/
+            return INT;
+        }
     }
 
     @Override
     public Object visitFactorMultiplicacion(MyParser.FactorMultiplicacionContext ctx) {
-
-        for (int i=0; i <= ctx.elementExpression().size()-1; i++)
-        {
-            this.listaSimbolosAsignacion.add( visit(ctx.signosOperativos(i)) );
-            visit(ctx.elementExpression(i));
+        //En el caso de que solo haya un elemento de m = a * b
+        if (ctx.elementExpression().size() == 1) {
+            primerSignoMD = (Token) visit(ctx.signosOperativos(0));
+            return visit(ctx.elementExpression(0));
         }
+        //En el caso de que sea asignación m = a
+        if (ctx.elementExpression().size() == 0) {
+            return VACIO;
+        }
+        /*
+        Compara cada visita para el caso de que haya mas variable m = a * b * c ...
+        y se asegura que sea int cada una de lo contrario tira la excepción
+         */
+        int nodoAnterior, nodoSiguiente;
 
-        return null;
+        nodoAnterior = (int) visit(ctx.elementExpression(0));
+        Token signo = (Token) visit(ctx.signosOperativos(1));
+
+        for (int i=1; i <= ctx.elementExpression().size()-1; i++)
+        {
+            nodoSiguiente = (int) visit(ctx.elementExpression(i));
+            if (nodoAnterior != INT || nodoSiguiente != INT) {
+
+                //capturar la excepción Aquí.
+
+                print("Tipos incompatibles en fila: " + signo.getLine() +
+                " columna: " + signo.getCharPositionInLine());
+            }
+            if (i+1 <= ctx.signosOperativos( ).size()-1) {
+                signo = (Token) visit(ctx.signosOperativos(i+1));
+            }
+            nodoAnterior = nodoSiguiente;
+        }
+        //Para el caso de que este bien.
+        return INT;
     }
 
+    /**
+     * Retorna los tokens de los símbolos de multiplicación o división
+     * @param ctx
+     * @return
+     */
     @Override
     public Object visitSignosOperativos(MyParser.SignosOperativosContext ctx) {
+
         if (ctx.MUL() != null) {
-            return MUL;
+            return ctx.MUL().getSymbol();
         } else {
-            return DIV;
+            return ctx.DIV().getSymbol();
         }
     }
 
     @Override
     public Object visitExpresionElemento(MyParser.ExpresionElementoContext ctx) {
+        int nodoIzquierdo, nodoDerecho;
 
-        Object variable = visit(ctx.primitiveExpression());
-        this.listaSimbolosAsignacion.add(variable);
-        visit(ctx.elementAccess());
+         nodoIzquierdo = (int) visit(ctx.primitiveExpression());
+         nodoDerecho = (int) visit(ctx.elementAccess());
+        //this.listaSimbolosAsignacion.add(variable);
 
+        if (nodoDerecho == VACIO){
+            return nodoIzquierdo;
+        } else if (nodoIzquierdo == nodoDerecho) {
+            return nodoDerecho;
+        }
         return null;
     }
 
     @Override
     public Object visitAccesoElemento(MyParser.AccesoElementoContext ctx) {
-
+        //No se que expresion evalua esto
         for (int i=0; i <= ctx.expression().size()-1; i++)
         {
             visit(ctx.expression(i));
         }
 
-        return null;
+        return 0;
     }
 
     @Override
