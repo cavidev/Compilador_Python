@@ -1,5 +1,6 @@
 // Generated from C:/Users/dell/Documents/Documentos de la U/Quinto Semestre/Compiladores e Interpretes/Proyecto 1\MyParser.g4 by ANTLR 4.6
 package generated;
+import myExceptions.ExcepcionIndefinido;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -128,7 +129,7 @@ public interface MyParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAsignacion(MyParser.AsignacionContext ctx);
+	T visitAsignacion(MyParser.AsignacionContext ctx) throws ExcepcionIndefinido;
 	/**
 	 * Visit a parse tree produced by the {@code llamarFuncion}
 	 * labeled alternative in {@link MyParser#functionCallStatement}.
@@ -272,7 +273,7 @@ public interface MyParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitExpresionPrimitivaID(MyParser.ExpresionPrimitivaIDContext ctx);
+	T visitExpresionPrimitivaID(MyParser.ExpresionPrimitivaIDContext ctx) throws ExcepcionIndefinido;
 	/**
 	 * Visit a parse tree produced by the {@code expresionPrimitivaCHAR}
 	 * labeled alternative in {@link MyParser#primitiveExpression}.

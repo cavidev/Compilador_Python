@@ -14,6 +14,7 @@ public class TablaSimbolos {
     private final int STRING = 2;
     private final int CHAR = 3;
     private final int LISTA = 4;
+    private final int INDEFINIDA = 5;
 
     class Ident{
         Token tok;
@@ -61,6 +62,9 @@ public class TablaSimbolos {
                     break;
                 case CHAR:
                     System.out.println("\tTipo: Char\n");
+                    break;
+                case INDEFINIDA:
+                    System.out.println("\tTipo: Indefinida\n");
                     break;
                 case LISTA:
                     System.out.println("\tTipo: Lista\n");

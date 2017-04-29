@@ -1,4 +1,2 @@
-a = "Algo"
-b = 5
-c = 'c'
-m = "carlos" + 'c'
+a = "hola"
+m = 9 * h

@@ -1,9 +1,12 @@
 package analizador;
 
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
+import com.sun.org.apache.bcel.internal.generic.RET;
+import com.sun.org.apache.bcel.internal.generic.RETURN;
 import generated.MyParser;
 import generated.MyParserBaseVisitor;
 import jdk.nashorn.internal.parser.Lexer;
+import myExceptions.ExcepcionIndefinido;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -13,10 +16,10 @@ import java.util.ArrayList;
 /**
  * Created by dell on 22/4/2017.
  */
-public class analizadorContextual extends MyParserBaseVisitor<Object> {
+public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
-    private int VACIO = 0, INT = 1, STRING = 2, CHAR = 3, LISTA = 4, ID = 5,
-            MUL= 6, DIV= 7, SUMA = 8 , RESTA = 9;
+    private int VACIO = 0, INT = 1, STRING = 2, CHAR = 3, LISTA = 4,
+            INDEFINIDA=5;
 
     private TablaSimbolos tablaSimbolos;
 
@@ -213,20 +216,30 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
      * @return
      */
     @Override
-    public Object visitAsignacion(MyParser.AsignacionContext ctx) {
+    public Object visitAsignacion(MyParser.AsignacionContext ctx) throws ExcepcionIndefinido {
         int nodoRaizAsignacion;
 
         nodoRaizAsignacion = (int) visit(ctx.expression()); //Realiza las visitas, tendrá que ir llenando una lista con los tokens.
+
+        //La buscamos, par ver si ya esta declarada antes y si corresponden los tipos.
         TablaSimbolos.Ident i = tablaSimbolos.buscar(ctx.IDENTIFIER().getText().toString());
         if (i != null) {
+            if (nodoRaizAsignacion == INDEFINIDA) {
+                print("No se pudo inferir la reasignacion en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                        " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
+            }
             int tipoTabla = i.tok.getType();
-
-            if (tipoTabla != STRING) {
-                System.out.println("Tipos incompatibles en fila: " + ctx.ASIGN().getSymbol().getLine() +
+            if (tipoTabla != nodoRaizAsignacion) {
+                print("Tipos incompatibles en fila: " + ctx.ASIGN().getSymbol().getLine() +
                         " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
             }
         } else {
-            tablaSimbolos.insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx);
+            if (nodoRaizAsignacion == INDEFINIDA) {
+                print("No se pudo inferir el valor en fila: " + ctx.ASIGN().getSymbol().getLine() +
+                        " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
+            } else {
+                tablaSimbolos.insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx);
+            }
         }
 
         return null;
@@ -297,6 +310,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
         nodoIzquierdo = (int) visit(ctx.multiplicationExpression());
         nodoDerecho = (int) visit(ctx.additionFactor());
 
+        //print("Aderencia " + visit(ctx.multiplicationExpression()) +" "+ visit(ctx.additionFactor()));
+
         if (nodoDerecho == VACIO){
             return nodoIzquierdo;
         }
@@ -314,12 +329,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitFactorAderencia(MyParser.FactorAderenciaContext ctx) {
-        /*
-        for (int i=0; i <= ctx.multiplicationExpression().size()-1; i++)
-        {
-            visit(ctx.signosSumaResta(i));
-            print ("La visita otra " + visit(ctx.multiplicationExpression(i)) );
-        }*/
         //En el caso de que solo haya un elemento de m = a + b
         if (ctx.multiplicationExpression().size() == 1) {
             primerSignoSR = (Token) visit(ctx.signosSumaResta(0));
@@ -384,8 +393,15 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
         nodoIzquierdo = (int) visit(ctx.elementExpression());
         nodoDerecho = (int) visit(ctx.multiplicationFactor());
 
-
-        if (nodoDerecho == VACIO) {/*
+        if (nodoIzquierdo == INDEFINIDA || nodoDerecho == INDEFINIDA) {/*Para cuando las variables son indefinidas*/
+            if (nodoIzquierdo == INDEFINIDA) {//Cuando venga solo m = h.
+                return INDEFINIDA;
+            } else {// Cuando viene m = 9 * a, esta ultima indefinida
+                print("Variable indefinida en fila: " + primerSignoMD.getLine() +
+                        " columna: " + primerSignoMD.getCharPositionInLine());
+                return INDEFINIDA;
+            }
+        } else if (nodoDerecho == VACIO) {/*
         Si el nodo de la derecho viene vacío significa que hay una asignación.
         */
             return nodoIzquierdo;
@@ -396,7 +412,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
             print("Tipos incompatibles en fila: " + primerSignoMD.getLine() +
                     " columna: " + primerSignoMD.getCharPositionInLine());
             primerSignoMD = null;
-            return null;
+            //Retorno en INDEFINIDA, PERO EN REALIDAD TIENE QUE SER INCOMPATIBLE
+            return INDEFINIDA;
         } else {/*
         Para el caso de que salga bien*/
             return INT;
@@ -432,6 +449,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
                 print("Tipos incompatibles en fila: " + signo.getLine() +
                 " columna: " + signo.getCharPositionInLine());
+                //Aqui tambien debe de llevar incompativilidad pero retorno indefinido.
+                return INDEFINIDA;
             }
             if (i+1 <= ctx.signosOperativos( ).size()-1) {
                 signo = (Token) visit(ctx.signosOperativos(i+1));
@@ -461,10 +480,14 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
     public Object visitExpresionElemento(MyParser.ExpresionElementoContext ctx) {
         int nodoIzquierdo, nodoDerecho;
 
-         nodoIzquierdo = (int) visit(ctx.primitiveExpression());
-         nodoDerecho = (int) visit(ctx.elementAccess());
-        //this.listaSimbolosAsignacion.add(variable);
+        nodoIzquierdo = (int) visit(ctx.primitiveExpression());
+        //Para cuando viene indefinida la variable.
+        if (nodoIzquierdo == INDEFINIDA) {
+            return INDEFINIDA;
+        }
+        nodoDerecho = (int) visit(ctx.elementAccess()); //No se ha echo la lógica de este.
 
+        //Si esta bien sigue con el código normal.
         if (nodoDerecho == VACIO){
             return nodoIzquierdo;
         } else if (nodoIzquierdo == nodoDerecho) {
@@ -543,57 +566,30 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitExpresionPrimitivaSTRING(MyParser.ExpresionPrimitivaSTRINGContext ctx) {
-        /*
-        if (nombreVariable != null) {
-            TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
-            if (i != null) {
-                int tipoTabla = i.tok.getType();
 
-                if (tipoTabla != STRING) {
-                    System.out.println("Tipos incompatibles en fila: " + ctx.STRING().getSymbol().getLine() +
-                            " columna: " + ctx.STRING().getSymbol().getCharPositionInLine());
-                }
-            } else {
-                tablaSimbolos.insertar(nombreVariable, STRING, ctx);
-            }
-        }
-        nombreVariable = null;
-        */
         return STRING;
     }
 
     /**
-     * Cuando se ejecuta la expresion m = a +* b devuelve a, b
+     * Cuando se ejecuta la expresion m = a +* b devuelve a o b
      * @param ctx
      * @return
      */
     @Override
-    public Object visitExpresionPrimitivaID(MyParser.ExpresionPrimitivaIDContext ctx) {
-        //Retorno la variable para buscarla.
-        variableAnalizar = ctx.IDENTIFIER().getText();
-        System.out.println(ctx.getClass().getSimpleName() + " Token: " + variableAnalizar);
+    public Object visitExpresionPrimitivaID(MyParser.ExpresionPrimitivaIDContext ctx)  {
 
-        return variableAnalizar;
+        TablaSimbolos.Ident i = tablaSimbolos.buscar(ctx.IDENTIFIER().getText().toString());
+        if (i == null) {
+            //Lanzamos la excepcion de tipo indefinido
+            //throw new ExcepcionIndefinido("Variable indefinida");
+            return INDEFINIDA;
+        }
+        return i.tok.getType();
     }
 
     @Override
     public Object visitExpresionPrimitivaCHAR(MyParser.ExpresionPrimitivaCHARContext ctx) {
-        /*
-        if (nombreVariable != null) {
-            TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
-            if (i != null) {
-                int tipoTabla = i.tok.getType();
 
-                if (tipoTabla != CHAR) {
-                    System.out.println("Tipos incompatibles en fila: " + ctx.CHAR().getSymbol().getLine() +
-                            " columna: " + ctx.CHAR().getSymbol().getCharPositionInLine());
-                }
-            } else {
-                tablaSimbolos.insertar(nombreVariable, CHAR, ctx);
-            }
-        }
-        nombreVariable = null;
-        */
         return CHAR;
     }
 
@@ -632,22 +628,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitListaExpresionesUltima(MyParser.ListaExpresionesUltimaContext ctx) {
 
-        /* print("Estoy en lista");
-        if (nombreVariable != null) {
-            TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
-            if (i != null) {
-                int tipoTabla = i.tok.getType();
-
-                if (tipoTabla != LISTA) {
-                    System.out.println("Tipos incompatibles en fila: " + ctx.PCIZQ().getSymbol().getLine() +
-                            " columna: " + ctx.PCIZQ().getSymbol().getCharPositionInLine());
-                }
-            } else {
-                tablaSimbolos.insertar(nombreVariable, LISTA, ctx);
-            }
-        }
-        nombreVariable = null;
-        */
         visit(ctx.expressionList());
 
         return null;

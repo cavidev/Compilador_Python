@@ -1,5 +1,6 @@
 // Generated from C:/Users/dell/Documents/Documentos de la U/Quinto Semestre/Compiladores e Interpretes/Proyecto 1\MyParser.g4 by ANTLR 4.6
 package generated;
+import myExceptions.ExcepcionIndefinido;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -785,8 +786,12 @@ public class MyParser extends Parser {
 		public AsignacionContext(AssignStatementContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MyParserVisitor ) return ((MyParserVisitor<? extends T>)visitor).visitAsignacion(this);
-			else return visitor.visitChildren(this);
+			try{
+				if ( visitor instanceof MyParserVisitor ) return ((MyParserVisitor<? extends T>)visitor).visitAsignacion(this);
+			} catch (ExcepcionIndefinido e){
+				System.out.println(e.getMessage());
+			}
+			return visitor.visitChildren(this);
 		}
 	}
 
@@ -1895,8 +1900,20 @@ public class MyParser extends Parser {
 		public ExpresionPrimitivaIDContext(PrimitiveExpressionContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MyParserVisitor ) return ((MyParserVisitor<? extends T>)visitor).visitExpresionPrimitivaID(this);
-			else return visitor.visitChildren(this);
+			//if ( visitor instanceof MyParserVisitor ) return ((MyParserVisitor<? extends T>)visitor).visitExpresionPrimitivaID(this);
+			//else return visitor.visitChildren(this);
+
+			try {
+				if ( visitor instanceof MyParserVisitor ) return ((MyParserVisitor<? extends T>)visitor).visitExpresionPrimitivaID(this);
+				else return visitor.visitChildren(this);
+			} catch (ExcepcionIndefinido excepcionIndefinido) {
+				System.out.println("Cayo en la excepcion");
+				System.out.println(excepcionIndefinido.getMessage());
+				return visitor.visitChildren(this);
+			}
+			//System.out.println("Continuo la ejecucion");
+			//return visitor.visitChildren(this);
+
 		}
 	}
 
