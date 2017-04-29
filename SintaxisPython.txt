@@ -1,2 +1,9 @@
-a = "hola"
-m = 9 * h
+a = ""
+x = "" + "" + a
+def calcularFac(num):
+    num_aux = 0
+    if (num < 1):
+        num_aux = 1
+    else:
+        num_aux = num * (calcularFac(num-1))
+    return num_aux

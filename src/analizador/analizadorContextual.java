@@ -310,21 +310,26 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         nodoIzquierdo = (int) visit(ctx.multiplicationExpression());
         nodoDerecho = (int) visit(ctx.additionFactor());
 
-        //print("Aderencia " + visit(ctx.multiplicationExpression()) +" "+ visit(ctx.additionFactor()));
+        if (nodoIzquierdo == INDEFINIDA || nodoDerecho == INDEFINIDA) {
 
-        if (nodoDerecho == VACIO){
+            if (nodoIzquierdo == INDEFINIDA) {//Cuando venga solo m = h.
+                return INDEFINIDA;
+            } else {// Cuando viene m = 9 + a, esta ultima indefinida
+                //print("Variable indefinida en fila: " + primerSignoSR.getLine() +
+                  //      " columna: " + primerSignoSR.getCharPositionInLine());
+                return INDEFINIDA;
+            }
+
+        } else if (nodoDerecho == VACIO){//Si viene una asignacion m = 9
             return nodoIzquierdo;
-        }
-        if (nodoIzquierdo != nodoDerecho){/*
-        todo: capturar la excepción, de tipos incompatibles, no dejarlos hacer*/
+        } else if (nodoIzquierdo != nodoDerecho){//Capturar la excepción, de tipos incompatibles, m = 9 + "string"
             print("Tipos incompatible en fila: " + primerSignoSR.getLine() +
                     " columna: " + primerSignoSR.getCharPositionInLine());
-        } else {
+            primerSignoSR = null;
+            return INDEFINIDA;
+        } else {//Creo que este es redodante.
             return nodoIzquierdo;
         }
-        primerSignoSR = null;
-        //Si sale bien, retorna el tipo si son iguales.
-        return nodoIzquierdo;
     }
 
     @Override
@@ -349,17 +354,24 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
         for (int i=1; i <= ctx.multiplicationExpression().size()-1; i++)
         {
+
             nodoSiguiente = (int) visit(ctx.multiplicationExpression(i));
+            if (nodoAnterior == INDEFINIDA || nodoSiguiente == INDEFINIDA) { //Cuando m = 9 + 9 + a, esta ultima indefinida.
+                print("Variable indefinida en fila: " + signo.getLine() +
+                        " columna: " + signo.getCharPositionInLine());
+                return INDEFINIDA;
+            }
             if (nodoAnterior != nodoSiguiente) {
                 if (nodoAnterior == STRING && nodoSiguiente == STRING &&
-                        signo.getType() != 22){
-                    //todo: Capturar la excepción de que es "Carlos" *, / "Mario"
+                        signo.getType() != 22){//Cuando m = "hola" + "string" - "string"
                     print("Operador incompatible en fila: " + signo.getLine() +
                             " columna: " + signo.getCharPositionInLine());
+                    return INDEFINIDA;
                 } else if (nodoAnterior == INT && nodoSiguiente == STRING ||
-                        nodoAnterior == STRING && nodoSiguiente == INT) {
+                        nodoAnterior == STRING && nodoSiguiente == INT) {// Cuando sea m = "a" + "c" + 9
                     print("Tipos incompatible en fila: " + signo.getLine() +
                             " columna: " + signo.getCharPositionInLine());
+                    return INDEFINIDA;
                 }
             }
             if (i+1 <= ctx.signosSumaResta( ).size()-1) {
@@ -367,7 +379,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
             }
             nodoAnterior = nodoSiguiente;
         }
-        //Para el caso de que este bien.
         return nodoAnterior;
     }
 
@@ -606,7 +617,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
         visit(ctx.listExpression());
 
-        return LISTA;
+        return LISTA; //Retorna que lo que se declaro es una lista.
     }
 
     @Override
