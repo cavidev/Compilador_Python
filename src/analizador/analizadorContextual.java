@@ -416,7 +416,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         Si el nodo de la derecho viene vacío significa que hay una asignación.
         */
             return nodoIzquierdo;
-        } else if (nodoIzquierdo == STRING || nodoDerecho == STRING) {/*
+        } else if (nodoIzquierdo == STRING || nodoDerecho == STRING || nodoIzquierdo == CHAR ||
+                nodoDerecho == CHAR || nodoIzquierdo == LISTA || nodoDerecho == LISTA) {/*
                 Si los nodos fueran incompatibles con la multiplicación
                 */
             //todo: Capturar la excepción, aquí se esta cayendo por el null con a = "Carlos" + "Mario" * 3
