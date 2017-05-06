@@ -48,15 +48,14 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         this.variableAnalizar = null;
         this.profundidadScope = 0;
 
-        this.scopes.add(profundidadScope, this.tablaSimbolos);
         this.tiposLista = new ArrayList<>();
     }
 
-    //todo: Duda, deberia insertar en scope actual si no lo encuentra? O se mantiene la busqueda como esta?
+    //Busca la variable en el scope actual y los anteriores
     private TablaSimbolos.Ident buscarEnScopes(String nombre){
         TablaSimbolos.Ident variable = null;
         for (int i = profundidadScope; i >= 0; i--){
-            variable = scopes.get(profundidadScope).buscar(nombre);
+            variable = scopes.get(i).buscar(nombre);
             if (variable != null){
                 break;
             }
@@ -260,7 +259,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         nodoRaizAsignacion = (int) visit(ctx.expression()); //Realiza las visitas, tendrá que ir llenando una lista con los tokens.
 
         //La buscamos, par ver si ya esta declarada antes y si corresponden los tipos.
-        TablaSimbolos.Ident i = buscarEnScopes(ctx.IDENTIFIER().getText().toString());
+        TablaSimbolos.Ident i = scopes.get(profundidadScope).buscar(ctx.IDENTIFIER().getText().toString());
         if (i != null) {
             if (nodoRaizAsignacion == INDEFINIDA) {
                 print("No se pudo inferir la reasignacion en fila: " + ctx.ASIGN().getSymbol().getLine() +
@@ -303,9 +302,9 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     public Object visitSecuencia(MyParser.SecuenciaContext ctx) {
 
         //Ident, se agrega nueva tabla a los scopes
+        this.profundidadScope ++;
         TablaSimbolos tabla = new TablaSimbolos();
         scopes.add(tabla);
-        this.profundidadScope ++;
 
         visit(ctx.moreStatement());
 
