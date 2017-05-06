@@ -19,12 +19,13 @@ import java.util.ArrayList;
 public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     private int VACIO = 0, INT = 1, STRING = 2, CHAR = 3, LISTA = 4,
-            INDEFINIDA=5;
+            INDEFINIDA = 5, BOOLEAN = 6;
 
     private TablaSimbolos tablaSimbolos;
 
     private Token primerSignoMD;
     private Token primerSignoSR;
+    private Token primerSignoComp;
     private ArrayList<TablaSimbolos> scopes;    //Lista de los Scope en el texto
     private String nombreVariable;              //Guarda el nombre de la variable temporalmente.
     private String variableAnalizar;            //Variable, controla si esta indefinida o no.
@@ -172,9 +173,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitIf_y_Else(MyParser.If_y_ElseContext ctx)  {
-        //Esperar a que termine
 
-        visit(ctx.expression());
+        print("Estoy en el if " +visit(ctx.expression()));
 
         visit(ctx.sequence(0));
         for (int i=1; i <= ctx.sequence().size()-1; i++)
@@ -286,28 +286,74 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitExpresion(MyParser.ExpresionContext ctx) {
         int nodoIzquierdo, nodoDerecho;
-        nodoIzquierdo = (int) visit(ctx.additionExpression());
-        //todo: falta evaluar este nodo.
-        visit(ctx.comparison());
 
-        return nodoIzquierdo;
+        nodoIzquierdo = (int) visit(ctx.additionExpression());
+        nodoDerecho = (int) visit(ctx.comparison());
+
+        if (nodoDerecho == VACIO) { //Cuando la expresion es: m = a, sin comparación.
+            return nodoIzquierdo;
+        } else if (nodoIzquierdo != nodoDerecho) { //Cuando:  8 > 'c'
+            print("Tipos incompatible en fila: " + primerSignoComp.getLine() +
+                    " columna: " + primerSignoComp.getCharPositionInLine());
+            primerSignoComp = null;
+            return INDEFINIDA;
+        } else { // Salga bien: 4 > 7, si existe la comparación.
+            return BOOLEAN;
+        }
     }
 
     @Override
     public Object visitComparacion(MyParser.ComparacionContext ctx) {
-        //Todo: falta evaluar esta parte del arbol.
-        for (int i=0; i <= ctx.additionExpression().size()-1; i++)
-        {
-            visit(ctx.signosComparacion(i));
-            visit(ctx.additionExpression(i));
+        int nodoAnterior, nodoSiguiente, tamanoListaExpresiones;
+        Token signoComparacion;
+
+        if (ctx.additionExpression().isEmpty()) {//Para el caso de que no venga con más comparaciones: m = 5
+            return VACIO;
         }
 
-        return 0;
+        tamanoListaExpresiones = ctx.additionExpression().size();      //Tomanos el tamaño de la lista.
+        signoComparacion = (Token) visit(ctx.signosComparacion(0));  //Adquiere el primer signo
+        nodoAnterior = (int) visit(ctx.additionExpression(0));       //Adquiere lo que viene despues.
+        primerSignoComp = signoComparacion;
+
+        if (tamanoListaExpresiones == 1) {
+            return nodoAnterior;
+        }
+        //Evaluamos cada token, que sean del mismo tipo: m = 6 > 7 > 8
+        signoComparacion = (Token) visit(ctx.signosComparacion(1));
+        for (int i=1; i <= ctx.additionExpression().size()-1; i++)
+        {
+            nodoSiguiente = (int) visit(ctx.additionExpression(i));
+
+            if (nodoAnterior != nodoSiguiente) { //Cuando los tipos no son iguales.
+                print("Tipos incompatible en fila: " + signoComparacion.getLine() +
+                        " columna: " + signoComparacion.getCharPositionInLine());
+                return INDEFINIDA;
+            }
+
+            if (i+1 <= ctx.signosComparacion( ).size()-1) {
+                signoComparacion = (Token) visit(ctx.signosComparacion(i+1));
+            }
+            nodoAnterior = nodoSiguiente;
+
+        }
+        //Si todos fueran del mismo tipo.
+        return nodoAnterior;
     }
 
     @Override
     public Object visitSignosComparacion(MyParser.SignosComparacionContext ctx) {
-
+        if (ctx.MAQUE() != null) {
+            return ctx.MAQUE().getSymbol();
+        } else if (ctx.MEQUE() != null) {
+            return ctx.MEQUE().getSymbol();
+        } else if (ctx.MEOIQUE() != null) {
+            return ctx.MEOIQUE().getSymbol();
+        } else if (ctx.MAOIQUE() != null){
+            return ctx.MAOIQUE().getSymbol();
+        } else if (ctx.IGUALQUE() != null) {
+            return ctx.IGUALQUE().getSymbol();
+        }
         return null;
     }
 
@@ -341,6 +387,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitFactorAderencia(MyParser.FactorAderenciaContext ctx) {
+
         //En el caso de que solo haya un elemento de m = a + b
         if (ctx.multiplicationExpression().size() == 1) {
             primerSignoSR = (Token) visit(ctx.signosSumaResta(0));
@@ -441,6 +488,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitFactorMultiplicacion(MyParser.FactorMultiplicacionContext ctx) {
+
         //En el caso de que solo haya un elemento de m = a * b
         if (ctx.elementExpression().size() == 1) {
             primerSignoMD = (Token) visit(ctx.signosOperativos(0));
@@ -500,6 +548,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         int nodoIzquierdo, nodoDerecho = VACIO;
 
         nodoIzquierdo = (int) visit(ctx.primitiveExpression());
+        //print("Nodo Izquierdo de ExpreELEMENTO "+nodoIzquierdo);
         //Para cuando viene indefinida la variable.
         if (nodoIzquierdo == INDEFINIDA) {
             return INDEFINIDA;
@@ -643,9 +692,9 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitExpresionPrimitivaDER_EX_IZQ(MyParser.ExpresionPrimitivaDER_EX_IZQContext ctx) {
 
-        visit(ctx.expression());
+        print("Exp.PimiDEREXIZQ " + visit(ctx.expression()));
 
-        return null;
+        return INDEFINIDA;
     }
 
     @Override
