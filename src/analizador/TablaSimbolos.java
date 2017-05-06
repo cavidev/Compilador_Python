@@ -32,6 +32,14 @@ public class TablaSimbolos {
         public int ObtenerTipoLista(int posicion){
             return this.tiposLista.get(posicion);
         }
+
+        public int ObtenerTamanoLista(){
+            return this.tiposLista.size();
+        }
+
+        public String ObtenerValor(){
+            return this.decl.getChild(2).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getText();
+        }
     }
 
     public TablaSimbolos() {

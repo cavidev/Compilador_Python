@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -26,11 +27,11 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     private Token primerSignoMD;
     private Token primerSignoSR;
     private ArrayList<TablaSimbolos> scopes;    //Lista de los Scope en el texto
+    private ArrayList<Funcion> listaFunciones;  //Lista de funciones todo: Solo se declaran globales, confirmar
     private String nombreVariable;              //Guarda el nombre de la variable temporalmente.
     private String variableAnalizar;            //Variable, controla si esta indefinida o no.
     private int profundidadScope;               //Profundidad en la que nos encontramos en el Scope.
-    private ArrayList<Integer> tiposLista;
-    private int tamanoString;
+    private ArrayList<Integer> tiposLista;      //Global para almacenar temporalmente los tipos de una nueva lista
     private int posibleIndice;
 
     private ArrayList<Object> listaSimbolosAsignacion; //lista de los simbolos en las asignaciones.
@@ -39,6 +40,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     public analizadorContextual() {
         this.tablaSimbolos = new TablaSimbolos();
         this.scopes = new ArrayList<>();
+        this.listaFunciones = new ArrayList<>();
+        this.scopes.add(this.tablaSimbolos);
         this.listaSimbolosAsignacion = new ArrayList<>();
 
         this.nombreVariable = null;
@@ -47,6 +50,30 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
         this.scopes.add(profundidadScope, this.tablaSimbolos);
         this.tiposLista = new ArrayList<>();
+    }
+
+    //todo: Duda, deberia insertar en scope actual si no lo encuentra? O se mantiene la busqueda como esta?
+    private TablaSimbolos.Ident buscarEnScopes(String nombre){
+        TablaSimbolos.Ident variable = null;
+        for (int i = profundidadScope; i >= 0; i--){
+            variable = scopes.get(profundidadScope).buscar(nombre);
+            if (variable != null){
+                break;
+            }
+        }
+        return variable;
+    }
+
+    //Buscar una funcion en la lista
+    private Funcion buscarFuncion(String identificador){
+        Funcion funcioncita = null;
+        for (int i=0;i<listaFunciones.size();i++){
+            if (listaFunciones.get(i).getIdFuncion().equals(identificador)){
+                funcioncita = listaFunciones.get(i);
+                break;
+            }
+        }
+        return funcioncita;
     }
 
     /**
@@ -132,9 +159,18 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitFuncion(MyParser.FuncionContext ctx) {
+        //todo:Considerar primero ver la cantidad de parametros para ver si se permite mismo nombre. Por ahora no pueden repetirse
+        if (buscarFuncion(ctx.IDENTIFIER().getText().toString()) == null){
+            listaFunciones.add(new Funcion(ctx.IDENTIFIER().getText().toString()));
+            visit(ctx.argList());
+            visit(ctx.sequence());
+        }
+        else{
+            System.out.println("Error en fila: " + ctx.IDENTIFIER().getSymbol().getLine() +
+                            " columna: "+ctx.IDENTIFIER().getSymbol().getCharPositionInLine()+
+                            ". La función " +ctx.IDENTIFIER().getText().toString()+" ya existe. ");
+        }
 
-        visit(ctx.argList());
-        visit(ctx.sequence());
 
         return null;
     }
@@ -224,7 +260,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         nodoRaizAsignacion = (int) visit(ctx.expression()); //Realiza las visitas, tendrá que ir llenando una lista con los tokens.
 
         //La buscamos, par ver si ya esta declarada antes y si corresponden los tipos.
-        TablaSimbolos.Ident i = tablaSimbolos.buscar(ctx.IDENTIFIER().getText().toString());
+        TablaSimbolos.Ident i = buscarEnScopes(ctx.IDENTIFIER().getText().toString());
         if (i != null) {
             if (nodoRaizAsignacion == INDEFINIDA) {
                 print("No se pudo inferir la reasignacion en fila: " + ctx.ASIGN().getSymbol().getLine() +
@@ -241,11 +277,11 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
                         " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
             } else {
                 if (nodoRaizAsignacion == LISTA){ // Si es una lista
-                    tablaSimbolos.insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx, tiposLista);
+                    scopes.get(profundidadScope).insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx, tiposLista);
                     tiposLista.clear();
                 }
                 else { // En caso de ser diferente del tipo lista
-                    tablaSimbolos.insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx);
+                    scopes.get(profundidadScope).insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx);
                 }
             }
         }
@@ -266,7 +302,16 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitSecuencia(MyParser.SecuenciaContext ctx) {
 
+        //Ident, se agrega nueva tabla a los scopes
+        TablaSimbolos tabla = new TablaSimbolos();
+        scopes.add(tabla);
+        this.profundidadScope ++;
+
         visit(ctx.moreStatement());
+
+        //Dedent, se elimina la tabla de los scopes
+        scopes.remove(this.profundidadScope);
+        this.profundidadScope --;
 
         return null;
     }
@@ -524,23 +569,31 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 //        {
 //            visit(ctx.expression(i));
 //        }
-        System.out.println("Aca");
         if (ctx.children != null){
             visit(ctx.expression(0)); // Actualiza el valor de posibleIndice
+            String nombreLista = ctx.parent.getChild(0).getChild(0).getText();
+            TablaSimbolos.Ident lista = buscarEnScopes(nombreLista);
             if ((int)visit(ctx.parent.getChild(0)) == LISTA){
-                String nombreLista = ctx.parent.getChild(0).getChild(0).getText();
-                return tablaSimbolos.buscar(nombreLista).ObtenerTipoLista(posibleIndice);
+                if (posibleIndice <= lista.ObtenerTamanoLista() - 1 ){
+                    return lista.ObtenerTipoLista(posibleIndice);
+                }
+                else{
+                    System.out.println("Índice fuera de rango en fila: " + ctx.start.getLine()+
+                    " , Columna: "+ ctx.start.getCharPositionInLine());
+                    return INDEFINIDA;
+                }
             }
-            //todo: caso para cuando viene un string dentro de una variable, no se sabe el valor de la variable
             else if ((int)visit(ctx.parent.getChild(0)) == STRING &&
-                    tamanoString - 2 > posibleIndice -1){ // Ver que sea tipo string y que no se acceda a un indice fuera del string
+                    buscarEnScopes(nombreLista).ObtenerValor().length() - 3 >= posibleIndice){
+                // Ver que sea variable tipo string y que no se acceda a un indice fuera del string
                 return STRING;
             }
             else{
+                System.out.println("Índice fuera de rango en fila: " + ctx.start.getLine()+
+                        " , Columna: "+ ctx.start.getCharPositionInLine());
                 return INDEFINIDA;
             }
         }
-
         else{
             return 0;
         }
@@ -607,7 +660,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitExpresionPrimitivaSTRING(MyParser.ExpresionPrimitivaSTRINGContext ctx) {
-        tamanoString = ctx.getChild(0).getText().length();
         return STRING;
     }
 
@@ -619,7 +671,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitExpresionPrimitivaID(MyParser.ExpresionPrimitivaIDContext ctx)  {
 
-        TablaSimbolos.Ident i = tablaSimbolos.buscar(ctx.IDENTIFIER().getText().toString());
+        TablaSimbolos.Ident i = buscarEnScopes(ctx.IDENTIFIER().getText().toString());
         if (i == null) {
             //Lanzamos la excepcion de tipo indefinido
             //throw new ExcepcionIndefinido("Variable indefinida");

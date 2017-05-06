@@ -1,4 +1,17 @@
 a = [1,"hola",3]
 s = "String"
-b = s[0]
+b = a[1]
+
+
+def funcioncita():
+    print("Hola")
+    b = "Hola"
+    if 2 < 3:
+        print("Dog")
+        b = "Adios"
+    else:
+        b = a[2]
+
+def funcioncita():
+    print("Hi")
 
