@@ -1,7 +1,6 @@
-a = [1,"string",'c']
-#v = listaPavoMamaTurcas[3]
 
-carlosRico = 1
+a = [1,"hola",3]
+b = "S"
 
-def pavoChupaTodo():
-    carlosRico =  a[1]
+def funcioncita():
+   b = a[1]
