@@ -4,4 +4,3 @@ b = "S"
 def funcioncita():
    b = a[1]
 
-
