@@ -29,6 +29,9 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     private String nombreVariable;              //Guarda el nombre de la variable temporalmente.
     private String variableAnalizar;            //Variable, controla si esta indefinida o no.
     private int profundidadScope;               //Profundidad en la que nos encontramos en el Scope.
+    private ArrayList<Integer> tiposLista;
+    private int tamanoString;
+    private int posibleIndice;
 
     private ArrayList<Object> listaSimbolosAsignacion; //lista de los simbolos en las asignaciones.
 
@@ -43,6 +46,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         this.profundidadScope = 0;
 
         this.scopes.add(profundidadScope, this.tablaSimbolos);
+        this.tiposLista = new ArrayList<>();
     }
 
     /**
@@ -140,9 +144,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
         System.out.println(" Parametro --> " + ctx.IDENTIFIER().getSymbol().getText());
 
-
         visit(ctx.moreArgs());
-
 
         return null;
     }
@@ -238,7 +240,13 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
                 print("No se pudo inferir el valor en fila: " + ctx.ASIGN().getSymbol().getLine() +
                         " columna: " + ctx.ASIGN().getSymbol().getCharPositionInLine());
             } else {
-                tablaSimbolos.insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx);
+                if (nodoRaizAsignacion == LISTA){ // Si es una lista
+                    tablaSimbolos.insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx, tiposLista);
+                    tiposLista.clear();
+                }
+                else { // En caso de ser diferente del tipo lista
+                    tablaSimbolos.insertar(ctx.IDENTIFIER().getText().toString(), nodoRaizAsignacion, ctx);
+                }
             }
         }
 
@@ -319,7 +327,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
                   //      " columna: " + primerSignoSR.getCharPositionInLine());
                 return INDEFINIDA;
             }
-
         } else if (nodoDerecho == VACIO){//Si viene una asignacion m = 9
             return nodoIzquierdo;
         } else if (nodoIzquierdo != nodoDerecho){//Capturar la excepción, de tipos incompatibles, m = 9 + "string"
@@ -490,33 +497,54 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitExpresionElemento(MyParser.ExpresionElementoContext ctx) {
-        int nodoIzquierdo, nodoDerecho;
+        int nodoIzquierdo, nodoDerecho = VACIO;
 
         nodoIzquierdo = (int) visit(ctx.primitiveExpression());
         //Para cuando viene indefinida la variable.
         if (nodoIzquierdo == INDEFINIDA) {
             return INDEFINIDA;
         }
-        nodoDerecho = (int) visit(ctx.elementAccess()); //No se ha echo la lógica de este.
+        else if (nodoIzquierdo == STRING || nodoIzquierdo == LISTA){ //Solo Strings y Listas pueden accederse mediante indices
+            nodoDerecho = (int) visit(ctx.elementAccess());
+        }
+
 
         //Si esta bien sigue con el código normal.
         if (nodoDerecho == VACIO){
             return nodoIzquierdo;
-        } else if (nodoIzquierdo == nodoDerecho) {
+        } else{
             return nodoDerecho;
         }
-        return null;
     }
 
     @Override
     public Object visitAccesoElemento(MyParser.AccesoElementoContext ctx) {
         //No se que expresion evalua esto
-        for (int i=0; i <= ctx.expression().size()-1; i++)
-        {
-            visit(ctx.expression(i));
+//        for (int i=0; i <= ctx.expression().size()-1; i++)
+//        {
+//            visit(ctx.expression(i));
+//        }
+        System.out.println("Aca");
+        if (ctx.children != null){
+            visit(ctx.expression(0)); // Actualiza el valor de posibleIndice
+            if ((int)visit(ctx.parent.getChild(0)) == LISTA){
+                String nombreLista = ctx.parent.getChild(0).getChild(0).getText();
+                return tablaSimbolos.buscar(nombreLista).ObtenerTipoLista(posibleIndice);
+            }
+            //todo: caso para cuando viene un string dentro de una variable, no se sabe el valor de la variable
+            else if ((int)visit(ctx.parent.getChild(0)) == STRING &&
+                    tamanoString - 2 > posibleIndice -1){ // Ver que sea tipo string y que no se acceda a un indice fuera del string
+                return STRING;
+            }
+            else{
+                return INDEFINIDA;
+            }
         }
 
-        return 0;
+        else{
+            return 0;
+        }
+
     }
 
     @Override
@@ -529,8 +557,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitListaExpresiones(MyParser.ListaExpresionesContext ctx) {
-
-        visit(ctx.expression());
+        int tipo = (int) visit(ctx.expression());
+        tiposLista.add(tipo);
         visit(ctx.moreExpressions());
 
         return null;
@@ -545,12 +573,12 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitMasExpresiones(MyParser.MasExpresionesContext ctx) {
-
+        int tipo;
         for (int i=0; i <= ctx.expression().size()-1; i++)
         {
-            visit(ctx.expression(i));
+            tipo = (int) visit(ctx.expression(i));
+            tiposLista.add(tipo);
         }
-
         return null;
     }
 
@@ -573,12 +601,13 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         }
         nombreVariable = null;
         */
+        posibleIndice = Integer.parseInt(ctx.getChild(0).getText());
         return INT;
     }
 
     @Override
     public Object visitExpresionPrimitivaSTRING(MyParser.ExpresionPrimitivaSTRINGContext ctx) {
-
+        tamanoString = ctx.getChild(0).getText().length();
         return STRING;
     }
 
@@ -596,6 +625,12 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
             //throw new ExcepcionIndefinido("Variable indefinida");
             return INDEFINIDA;
         }
+//        else if (i.tok.getType() == STRING){ // Guarda la longitud del string
+//            tamanoString = i.tok.getText().length();
+//        }
+//        else if (i.tok.getType() == INT){
+//            posibleIndice = i.tok.ge
+//        }
         return i.tok.getType();
     }
 

@@ -1,5 +1,7 @@
 package analizador;
 import org.antlr.v4.runtime.*;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
@@ -16,15 +18,20 @@ public class TablaSimbolos {
     private final int LISTA = 4;
     private final int INDEFINIDA = 5;
 
-    class Ident{
+    class Ident {
         Token tok;
         ParserRuleContext decl;
+        ArrayList<Integer> tiposLista;
 
         public Ident(Token token, ParserRuleContext declaracion) {
-            tok = token;
-            decl = declaracion;
+            tok         = token;
+            decl        = declaracion;
+            tiposLista  = new ArrayList<>();
         }
 
+        public int ObtenerTipoLista(int posicion){
+            return this.tiposLista.get(posicion);
+        }
     }
 
     public TablaSimbolos() {
@@ -34,6 +41,15 @@ public class TablaSimbolos {
     public void insertar(String nombre, int tipo, ParserRuleContext declaracion) {
         Token token = new CommonToken(tipo, nombre);
         Ident i = new Ident(token, declaracion);
+        tabla.add(i);
+    }
+
+    public void insertar(String nombre, int tipo, ParserRuleContext declaracion, ArrayList<Integer> tiposLista) {
+        Token token = new CommonToken(tipo, nombre);
+        Ident i = new Ident(token, declaracion);
+        for (int c = 0; c< tiposLista.size(); c++){
+            i.tiposLista.add(tiposLista.get(c));
+        }
         tabla.add(i);
     }
 

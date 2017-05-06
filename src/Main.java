@@ -40,8 +40,8 @@ public class Main {
 
         tree = parser.program();
 
-        //ArbolSinNodos arbol = new ArbolSinNodos();
-        //arbol.visit(tree);
+//        ArbolSinNodos arbol = new ArbolSinNodos();
+//        arbol.visit(tree);
 
         analizadorContextual aContextual =  new analizadorContextual();
         aContextual.visit(tree);
