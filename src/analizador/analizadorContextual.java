@@ -478,6 +478,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
             }
             nodoAnterior = nodoSiguiente;
         }
+        primerSignoSR = (Token) visit(ctx.signosSumaResta(0));
         return nodoAnterior;
     }
 
@@ -570,6 +571,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
             nodoAnterior = nodoSiguiente;
         }
         //Para el caso de que este bien.
+        primerSignoMD = (Token) visit(ctx.signosOperativos(0));
         return INT;
     }
 

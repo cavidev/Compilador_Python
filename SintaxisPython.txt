@@ -1,2 +1,7 @@
-m = 5 > 7
+a = [1,"string",'c']
+#v = listaPavoMamaTurcas[3]
 
+carlosRico = 1
+
+def pavoChupaTodo():
+    carlosRico =  a[1]
