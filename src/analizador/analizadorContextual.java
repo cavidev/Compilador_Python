@@ -263,7 +263,13 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitPrint(MyParser.PrintContext ctx) {
 
-        visit(ctx.expression());
+        int nodoRaiz = (int) visit(ctx.expression());
+
+        if ( nodoRaiz == VACIO || nodoRaiz == INDEFINIDA || nodoRaiz == BOOLEAN ) {
+            //Cuando la expresion viene sin saber el tipo.
+            print("Error en impresion en fila: " + ctx.PIZQ().getSymbol().getLine() +
+                    " columna: " + ctx.PIZQ().getSymbol().getCharPositionInLine());
+        }
 
         return null;
     }
@@ -274,7 +280,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
      * @return
      */
     @Override
-    public Object visitAsignacion(MyParser.AsignacionContext ctx) throws ExcepcionIndefinido {
+    public Object visitAsignacion(MyParser.AsignacionContext ctx)  {
         int nodoRaizAsignacion;
 
         nodoRaizAsignacion = (int) visit(ctx.expression()); //Realiza las visitas, tendrá que ir llenando una lista con los tokens.
@@ -515,6 +521,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
             }
             nodoAnterior = nodoSiguiente;
         }
+        primerSignoSR = (Token) visit(ctx.signosSumaResta(0));
         return nodoAnterior;
     }
 
@@ -607,6 +614,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
             nodoAnterior = nodoSiguiente;
         }
         //Para el caso de que este bien.
+        primerSignoMD = (Token) visit(ctx.signosOperativos(0));
         return INT;
     }
 
@@ -660,7 +668,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
                     return lista.ObtenerTipoLista(posibleIndice);
                 }
                 else{
-                    System.out.println("Índice fuera de rango en fila: " + ctx.start.getLine()+
+                    print("Índice fuera de rango en fila: " + ctx.start.getLine()+
                     " , Columna: "+ ctx.start.getCharPositionInLine());
                     return INDEFINIDA;
                 }
@@ -671,7 +679,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
                 return STRING;
             }
             else{
-                System.out.println("Índice fuera de rango en fila: " + ctx.start.getLine()+
+                print("Índice fuera de rango en fila: " + ctx.start.getLine()+
                         " , Columna: "+ ctx.start.getCharPositionInLine());
                 return INDEFINIDA;
             }
@@ -799,7 +807,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitExpresionPrimitivaDER_EX_IZQ(MyParser.ExpresionPrimitivaDER_EX_IZQContext ctx) {
 
-        print("Exp.PimiDEREXIZQ " + visit(ctx.expression()));
+         visit(ctx.expression());
 
         return INDEFINIDA;
     }
@@ -814,10 +822,17 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitExpresionPrimitivaLEN_PIZQ_EX_PDER(MyParser.ExpresionPrimitivaLEN_PIZQ_EX_PDERContext ctx) {
+        int nodoRaiz;
 
-        visit(ctx.expression());
+        nodoRaiz = (int) visit(ctx.expression());
 
-        return null;
+        if (nodoRaiz == STRING || nodoRaiz == LISTA) {
+            return INDEFINIDA;
+        } else {
+            print("Tipo incompatible en la funcion en fila: " + ctx.start.getLine()+
+                    " , Columna: "+ ctx.start.getCharPositionInLine());
+            return INT;
+        }
     }
 
     @Override

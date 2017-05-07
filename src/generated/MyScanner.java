@@ -1,4 +1,4 @@
-// Generated from C:/Users/dell/Documents/Documentos de la U/Quinto Semestre/Compiladores e Interpretes/Proyecto 1\MyScanner.g4 by ANTLR 4.6
+// Generated from C:/Users/dell/Documents/Documentos de la U/Quinto Semestre/Compiladores e Interpretes/Proyecto 2/Compilador_Python\MyScanner.g4 by ANTLR 4.6
 package generated;
 
   import denter.DenterHelper;
