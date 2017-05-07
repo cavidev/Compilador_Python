@@ -34,6 +34,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     private int profundidadScope;               //Profundidad en la que nos encontramos en el Scope.
     private ArrayList<Integer> tiposLista;      //Global para almacenar temporalmente los tipos de una nueva lista
     private int posibleIndice;
+    private String ultimaFuncion;
 
     private ArrayList<Object> listaSimbolosAsignacion; //lista de los simbolos en las asignaciones.
 
@@ -160,10 +161,20 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitFuncion(MyParser.FuncionContext ctx) {
         //todo:Considerar primero ver la cantidad de parametros para ver si se permite mismo nombre. Por ahora no pueden repetirse
+
         if (buscarFuncion(ctx.IDENTIFIER().getText().toString()) == null){
-            listaFunciones.add(new Funcion(ctx.IDENTIFIER().getText().toString()));
-            visit(ctx.argList());
+            Funcion nuevaFuncion = new Funcion(ctx.IDENTIFIER().getText().toString());
+
+            ArrayList<Integer>  listaParametros;
+            listaParametros = (ArrayList<Integer>) visit(ctx.argList());
+            if (listaParametros != null){               //Si retorna null es porque no traia parametros
+                nuevaFuncion.setTiposParametros(listaParametros);
+            }
+            ultimaFuncion = ctx.IDENTIFIER().getText().toString();
+            listaFunciones.add(nuevaFuncion);
             visit(ctx.sequence());
+
+
         }
         else{
             System.out.println("Error en fila: " + ctx.IDENTIFIER().getSymbol().getLine() +
@@ -177,33 +188,42 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitListaParametros(MyParser.ListaParametrosContext ctx) {
+        System.out.println(" Parametro --> " + ctx.IDENTIFIER().getText());
 
-        System.out.println(" Parametro --> " + ctx.IDENTIFIER().getSymbol().getText());
+        ArrayList<Integer> listaParametros = (ArrayList<Integer>) visit(ctx.moreArgs());
 
-        visit(ctx.moreArgs());
-
-        return null;
+        return listaParametros;
     }
 
     @Override
     public Object visitListaParametroEOS(MyParser.ListaParametroEOSContext ctx) {
-
-
         return null;
     }
 
     @Override
     public Object visitMasParametros(MyParser.MasParametrosContext ctx) {
-
-        for (int i = 0; i <= ctx.IDENTIFIER().size() - 1; i++)
-        {
-
-            System.out.println(" Parametro --> " + ctx.IDENTIFIER(i).getSymbol().getText());
-
-
+        ArrayList<Integer> parametros = new ArrayList<>();
+        TablaSimbolos.Ident ident =  scopes.get(profundidadScope).buscar(ctx.parent.getChild(0).getText());
+        if (ident != null){                         // La variable existe
+            parametros.add(ident.tok.getType());
         }
-
-        return null;
+        else{                                       // No se ha definido el parametro
+            parametros.add(INDEFINIDA);             //Se agrega como indefinida para que no afecte a las otras
+            print("Variable indefinida en fila: "+ ctx.start.getLine() + " columna: " + (ctx.start.getCharPositionInLine()));
+        }
+        for (int i = 0; i < ctx.IDENTIFIER().size(); i++)
+        {
+            ident =  scopes.get(profundidadScope).buscar(ctx.IDENTIFIER(i).getText());
+            if (ident != null){                     // La variable existe
+                parametros.add(ident.tok.getType());
+            }
+            else{                                   // No se ha definido el parametro
+                parametros.add(INDEFINIDA);         //Se agrega como indefinida para que no afecte a las otras
+                print("Variable indefinida en fila: "+ ctx.start.getLine() + " columna: " + (ctx.start.getCharPositionInLine() + 2));
+            }
+            System.out.println(" Parametro --> " + ctx.IDENTIFIER(i).getText());
+        }
+        return parametros;
     }
 
     @Override
@@ -230,11 +250,12 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
         return null;
     }
-
     @Override
-    public Object visitReturn(MyParser.ReturnContext ctx) {
 
-        visit(ctx.expression());
+    public Object visitReturn(MyParser.ReturnContext ctx) {
+        buscarFuncion(ultimaFuncion).setTipoRetorno((int)visit(ctx.expression()));
+
+//        visit(ctx.expression());
 
         return null;
     }
@@ -258,7 +279,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
         nodoRaizAsignacion = (int) visit(ctx.expression()); //Realiza las visitas, tendrá que ir llenando una lista con los tokens.
 
-        //La buscamos, par ver si ya esta declarada antes y si corresponden los tipos.
+        // La buscamos, par ver si ya esta declarada antes y si corresponden los tipos.
         TablaSimbolos.Ident i = scopes.get(profundidadScope).buscar(ctx.IDENTIFIER().getText().toString());
         if (i != null) {
             if (nodoRaizAsignacion == INDEFINIDA) {
@@ -290,9 +311,27 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitLlamarFuncion(MyParser.LlamarFuncionContext ctx) {
+        Funcion f = buscarFuncion(ctx.getChild(0).getChild(0).getText());
+        if (f == null){
+            print("Función no definida en fila: " + ctx.start.getLine() + " columna: "+ ctx.start.getCharPositionInLine());
+        }
+        else{
+            ArrayList<Integer> tiposParametros = (ArrayList<Integer>) visit(ctx.expressionList());
+            if (tiposParametros.size() != f.getTiposParametros().size()){
+                print("La llamada a la función difiere en la cantidad de parámetros, " +
+                        "fila: " + ctx.start.getLine() + " columna: "+ ctx.start.getCharPositionInLine());
+            }
+            else{
+                for (int i = 0; i < tiposParametros.size(); i++){
+                    if (tiposParametros.get(i) != f.getTiposParametros().get(i)){
+                        print("Tipos de parámetros en llamada a función incompatibles," +
+                                " en fila: " + ctx.stop.getLine() +
+                                " columna: "+ (ctx.stop.getCharPositionInLine() - 2 * tiposParametros.size() + 2 * i + 1));
+                    }
+                }
+            }
+        }
 
-        visit(ctx.primitiveExpression());
-        visit(ctx.expressionList());
 
 
         return null;
@@ -317,7 +356,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitMasDeclaraciones(MyParser.MasDeclaracionesContext ctx) {
-
         visit(ctx.statement(0));
         for (int i=1; i <= ctx.statement().size()-1; i++)
         {
@@ -612,11 +650,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitAccesoElemento(MyParser.AccesoElementoContext ctx) {
-        //No se que expresion evalua esto
-//        for (int i=0; i <= ctx.expression().size()-1; i++)
-//        {
-//            visit(ctx.expression(i));
-//        }
+
         if (ctx.children != null){
             visit(ctx.expression(0)); // Actualiza el valor de posibleIndice
             String nombreLista = ctx.parent.getChild(0).getChild(0).getText();
@@ -650,37 +684,59 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitDeclaracionFuntionCallExpression(MyParser.DeclaracionFuntionCallExpressionContext ctx) {
+        Funcion f = buscarFuncion(ctx.IDENTIFIER().getText());
+        if (f == null){
+            print("Función no definida en fila: " + ctx.start.getLine() + " columna: "+ ctx.start.getCharPositionInLine());
+            return INDEFINIDA;
+        }
+        else {
+            ArrayList<Integer> tiposParametros = (ArrayList<Integer>) visit(ctx.expressionList());
+            if (tiposParametros.size() != f.getTiposParametros().size()) {
+                print("La llamada a la función difiere en la cantidad de parámetros, " +
+                        "fila: " + ctx.start.getLine() + " columna: " + ctx.start.getCharPositionInLine());
+                return INDEFINIDA;
+            } else {
+                for (int i = 0; i < tiposParametros.size(); i++) {
+                    if (tiposParametros.get(i) != f.getTiposParametros().get(i)) {
+                        print("Tipos de parámetros en llamada a función incompatibles," +
+                                " en fila: " + ctx.stop.getLine() +
+                                " columna: " + (ctx.stop.getCharPositionInLine() - 2 * tiposParametros.size() + 2 * i + 1));
+                    }
+                }
+                return f.getTipoRetorno();
+            }
+        }
 
-        visit(ctx.expressionList());
 
-        return null;
     }
 
     @Override
     public Object visitListaExpresiones(MyParser.ListaExpresionesContext ctx) {
-        int tipo = (int) visit(ctx.expression());
-        tiposLista.add(tipo);
-        visit(ctx.moreExpressions());
+        ArrayList<Integer> listaExpresiones = (ArrayList<Integer>) visit(ctx.moreExpressions());
 
-        return null;
+        return listaExpresiones;
     }
 
     @Override
     public Object visitListExpressionEOS(MyParser.ListExpressionEOSContext ctx) {
         //Espacio en blanco
 
-        return null;
+        return new ArrayList<Integer>();
     }
 
     @Override
     public Object visitMasExpresiones(MyParser.MasExpresionesContext ctx) {
+        ArrayList<Integer> listaExpresiones = new ArrayList<>();
         int tipo;
-        for (int i=0; i <= ctx.expression().size()-1; i++)
+        tipo = (int)visit(ctx.parent.getChild(0));
+        listaExpresiones.add(tipo);
+
+        for (int i=0; i < ctx.expression().size(); i++)
         {
             tipo = (int) visit(ctx.expression(i));
-            tiposLista.add(tipo);
+            listaExpresiones.add(tipo);
         }
-        return null;
+        return listaExpresiones;
     }
 
     @Override
@@ -767,15 +823,16 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitExpresionPrimitivaFunctionCallExpression(MyParser.ExpresionPrimitivaFunctionCallExpressionContext ctx) {
 
-        visit(ctx.functionCallExpression());
+        int tipo = (int)visit(ctx.functionCallExpression());
 
-        return null;
+        return tipo;
     }
 
     @Override
     public Object visitListaExpresionesUltima(MyParser.ListaExpresionesUltimaContext ctx) {
 
-        visit(ctx.expressionList());
+
+        tiposLista = (ArrayList<Integer>) visit(ctx.expressionList());
 
         return null;
     }

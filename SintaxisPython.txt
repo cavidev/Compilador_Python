@@ -1,6 +1,10 @@
-a = [1,"hola",3]
-b = "S"
+a = [1,2,"String"]
+b = a[2]
+c = "St"
 
-def funcioncita():
-   b = a[1]
+def funcion(b,l,c):
+    print("Hello")
+    return 2
 
+
+g = 2 + funcion(b,l,c)
