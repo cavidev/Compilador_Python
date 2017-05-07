@@ -1,6 +1,3 @@
-
-a = [1,"hola",3]
-b = "S"
-
-def funcioncita():
-   b = a[1]
+lista = [1,2,3,4]
+def algo():
+    len(1)()

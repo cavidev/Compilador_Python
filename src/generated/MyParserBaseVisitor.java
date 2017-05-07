@@ -1,6 +1,5 @@
-// Generated from C:/Users/dell/Documents/Documentos de la U/Quinto Semestre/Compiladores e Interpretes/Proyecto 1\MyParser.g4 by ANTLR 4.6
+// Generated from C:/Users/dell/Documents/Documentos de la U/Quinto Semestre/Compiladores e Interpretes/Proyecto 2/Compilador_Python\MyParser.g4 by ANTLR 4.6
 package generated;
-import myExceptions.ExcepcionIndefinido;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 /**
@@ -130,7 +129,7 @@ public class MyParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitAsignacion(MyParser.AsignacionContext ctx) throws ExcepcionIndefinido { return visitChildren(ctx); }
+	@Override public T visitAsignacion(MyParser.AsignacionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -277,7 +276,7 @@ public class MyParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpresionPrimitivaID(MyParser.ExpresionPrimitivaIDContext ctx) throws ExcepcionIndefinido { return visitChildren(ctx); }
+	@Override public T visitExpresionPrimitivaID(MyParser.ExpresionPrimitivaIDContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
