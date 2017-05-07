@@ -1,6 +1,5 @@
-
 a = [1,2,"String"]
-b = a[2]
+b = a[2] + t
 c = "St"
 
 def funcion(b,l,c):
@@ -8,4 +7,4 @@ def funcion(b,l,c):
     return 2
 
 
-g = 2 + funcion(b,l,c)
+g = funcion(b,l,c)

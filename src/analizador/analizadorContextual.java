@@ -3,6 +3,7 @@ package analizador;
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import com.sun.org.apache.bcel.internal.generic.RET;
 import com.sun.org.apache.bcel.internal.generic.RETURN;
+import editor_de_texto.TPEditor;
 import generated.MyParser;
 import generated.MyParserBaseVisitor;
 import jdk.nashorn.internal.parser.Lexer;
@@ -10,6 +11,7 @@ import myExceptions.ExcepcionIndefinido;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -35,9 +37,25 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     private ArrayList<Integer> tiposLista;      //Global para almacenar temporalmente los tipos de una nueva lista
     private int posibleIndice;
     private String ultimaFuncion;
+    private TPEditor tpEditor;
 
     private ArrayList<Object> listaSimbolosAsignacion; //lista de los simbolos en las asignaciones.
 
+
+    public analizadorContextual(TPEditor ventana) {
+        this.tpEditor = ventana;
+        this.tablaSimbolos = new TablaSimbolos();
+        this.scopes = new ArrayList<>();
+        this.listaFunciones = new ArrayList<>();
+        this.scopes.add(this.tablaSimbolos);
+        this.listaSimbolosAsignacion = new ArrayList<>();
+
+        this.nombreVariable = null;
+        this.variableAnalizar = null;
+        this.profundidadScope = 0;
+
+        this.tiposLista = new ArrayList<>();
+    }
 
     public analizadorContextual() {
         this.tablaSimbolos = new TablaSimbolos();
@@ -177,7 +195,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
         }
         else{
-            System.out.println("Error en fila: " + ctx.IDENTIFIER().getSymbol().getLine() +
+            print("Error en fila: " + ctx.IDENTIFIER().getSymbol().getLine() +
                             " columna: "+ctx.IDENTIFIER().getSymbol().getCharPositionInLine()+
                             ". La función " +ctx.IDENTIFIER().getText().toString()+" ya existe. ");
         }
@@ -229,7 +247,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     @Override
     public Object visitIf_y_Else(MyParser.If_y_ElseContext ctx)  {
 
-        print("Estoy en el if " +visit(ctx.expression()));
+        visit(ctx.expression());
 
         visit(ctx.sequence(0));
         for (int i=1; i <= ctx.sequence().size()-1; i++)
@@ -337,9 +355,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
                 }
             }
         }
-
-
-
         return null;
     }
 
@@ -423,7 +438,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
                 signoComparacion = (Token) visit(ctx.signosComparacion(i+1));
             }
             nodoAnterior = nodoSiguiente;
-
         }
         //Si todos fueran del mismo tipo.
         return nodoAnterior;
@@ -457,8 +471,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
             if (nodoIzquierdo == INDEFINIDA) {//Cuando venga solo m = h.
                 return INDEFINIDA;
             } else {// Cuando viene m = 9 + a, esta ultima indefinida
-                //print("Variable indefinida en fila: " + primerSignoSR.getLine() +
-                  //      " columna: " + primerSignoSR.getCharPositionInLine());
+                print("Variable indefinida en fila: " + primerSignoSR.getLine() +
+                        " columna: " + primerSignoSR.getCharPositionInLine());
                 return INDEFINIDA;
             }
         } else if (nodoDerecho == VACIO){//Si viene una asignacion m = 9
@@ -714,8 +728,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
                 return f.getTipoRetorno();
             }
         }
-
-
     }
 
     @Override
@@ -749,23 +761,6 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
     @Override
     public Object visitExpresionPrimitivaINT(MyParser.ExpresionPrimitivaINTContext ctx) {
-        /*
-        if (nombreVariable != null) {
-            TablaSimbolos.Ident i = tablaSimbolos.buscar(nombreVariable);
-            if (i != null) {
-                int tipoTabla;
-                tipoTabla = i.tok.getType();
-
-                if (tipoTabla != INT) {
-                    System.out.println("Tipos incompatibles en fila: " + ctx.INTEGER().getSymbol().getLine() +
-                            " columna: " + ctx.INTEGER().getSymbol().getCharPositionInLine());
-                }
-            } else {
-                tablaSimbolos.insertar(nombreVariable, INT, ctx);
-            }
-        }
-        nombreVariable = null;
-        */
         posibleIndice = Integer.parseInt(ctx.getChild(0).getText());
         return INT;
     }
@@ -785,16 +780,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
 
         TablaSimbolos.Ident i = buscarEnScopes(ctx.IDENTIFIER().getText().toString());
         if (i == null) {
-            //Lanzamos la excepcion de tipo indefinido
-            //throw new ExcepcionIndefinido("Variable indefinida");
             return INDEFINIDA;
         }
-//        else if (i.tok.getType() == STRING){ // Guarda la longitud del string
-//            tamanoString = i.tok.getText().length();
-//        }
-//        else if (i.tok.getType() == INT){
-//            posibleIndice = i.tok.ge
-//        }
         return i.tok.getType();
     }
 
@@ -853,7 +840,8 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     }
 
     public void print( Object doc) {
-        System.out.println(doc);
+        this.tpEditor.setErrors(doc.toString());
+        System.out.println(doc.toString());
     }
 
     public boolean isString(Object str) {

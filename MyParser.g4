@@ -115,7 +115,7 @@ elementAccess:
         ;
 
 functionCallExpression:
-        IDENTIFIER ( expressionList )   #declaracionFuntionCallExpression
+        IDENTIFIER PIZQ expressionList PDER   #declaracionFuntionCallExpression
         ;
 
 expressionList:
