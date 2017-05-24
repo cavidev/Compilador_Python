@@ -9,6 +9,7 @@ package editor_de_texto;
  *
  * @author Leidy
  */
+import analizador.analizadorContextual;
 import myExceptions.MyExceptionHandler;
 import myExceptions.ParserErrorListener;
 import myExceptions.ScannerErrorListener;
@@ -530,6 +531,9 @@ public class ActionPerformer {
 
             ParseTree tree = parser.program();  //Se ejecuta el parser.
             tpEditor.buildVistaArbol(tree);     //Se arma el arbol de nodos
+
+            analizadorContextual aContextual = new analizadorContextual(this.tpEditor);
+            aContextual.visit(tree);
 
             System.out.println("Se realizo el analisis sintactico, y se inserto el arbol");
 

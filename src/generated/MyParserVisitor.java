@@ -1,4 +1,4 @@
-// Generated from C:/Users/dell/Documents/Documentos de la U/Quinto Semestre/Compiladores e Interpretes/Proyecto 1\MyParser.g4 by ANTLR 4.6
+// Generated from C:/Users/dell/Documents/Documentos de la U/Quinto Semestre/Compiladores e Interpretes/Proyecto 2/Compilador_Python\MyParser.g4 by ANTLR 4.6
 package generated;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
