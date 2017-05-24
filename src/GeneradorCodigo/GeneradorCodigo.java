@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.StringJoiner;
 
 /**
  * Created by dell on 22/5/2017.
@@ -96,6 +97,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitFuncion(MyParser.FuncionContext ctx) {
 
+        this.AgregarPilaInstrucciones(0, ctx.IDENTIFIER().getText() + "()", " ");
         visit(ctx.sequence());
 
         return null;
@@ -128,14 +130,22 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
         this.AgregarPilaInstrucciones(this.lineas, "JUMP_IF_TRUE", "Agregar linea");
         this.lineas++;
 
+        Instruccion salto = this.pilaInstrucciones.get(this.pilaInstrucciones.size()-1);
+
 
         visit(ctx.sequence(1));
+
+        salto.setValor(String.valueOf(this.lineas + 1));
 
 
         this.AgregarPilaInstrucciones(this.lineas, "JUMP_ABSOLUTE", "Agregar linea");
         this.lineas++;
 
+        salto = this.pilaInstrucciones.get(this.pilaInstrucciones.size()-1);
+
         visit(ctx.sequence(0));
+
+        salto.setValor(String.valueOf(this.lineas));
 
         return null;
     }
@@ -340,25 +350,29 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     public Object visitListaExpresiones(MyParser.ListaExpresionesContext ctx) {
 
         visit(ctx.expression());
-        visit(ctx.moreExpressions());
 
-        return null;
+        int contadorExpresiones = 1;
+
+        contadorExpresiones += (int) visit(ctx.moreExpressions());
+
+        return contadorExpresiones;
     }
 
     @Override
     public Object visitListExpressionEOS(MyParser.ListExpressionEOSContext ctx) {
 
-        return null;
+        return 0;
     }
 
     @Override
     public Object visitMasExpresiones(MyParser.MasExpresionesContext ctx) {
-
+        int contadorMasExpresiones = 0;
         for (int i = 0; i <= ctx.expression().size()-1 ; i++) {
             visit(ctx.expression(i));
+            contadorMasExpresiones ++;
         }
 
-        return null;
+        return contadorMasExpresiones;
     }
 
     /**
@@ -427,7 +441,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitExpresionPrimitivaLISTAEXPRESION(MyParser.ExpresionPrimitivaLISTAEXPRESIONContext ctx) {
-
+        visit(ctx.listExpression());
         return null;
 
     }
@@ -447,6 +461,9 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitListaExpresionesUltima(MyParser.ListaExpresionesUltimaContext ctx) {
+        int cantidad = (int)visit(ctx.expressionList());
+        this.AgregarPilaInstrucciones(this.lineas, "BUILD_LIST", String.valueOf(cantidad));
+        this.lineas++;
 
         return null;
 

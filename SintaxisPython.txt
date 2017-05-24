@@ -2,5 +2,6 @@ def foo(a):
     num = 3
     if (num < 1):
         num = 1
+        lista = [1,2,3]
     else:
         num = num * 2

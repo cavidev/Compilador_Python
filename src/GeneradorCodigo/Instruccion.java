@@ -6,6 +6,11 @@ package GeneradorCodigo;
 public class Instruccion {
 
     private String instruccion;
+
+    public void setValor(String valor) {
+        this.valor = valor;
+    }
+
     private int numeroLinea;
     private String valor;
 
