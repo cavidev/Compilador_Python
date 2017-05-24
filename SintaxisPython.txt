@@ -1,5 +1,5 @@
-def foo(a):
-    num = 3
+def foo(a,b,c):
+    prom = promedio(ventas,ganancias,gastos,compras)
     if (num < 1):
         num = 1
         lista = [1,2,3]
