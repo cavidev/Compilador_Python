@@ -6,15 +6,15 @@ package GeneradorCodigo;
 public class Instruccion {
 
     private String instruccion;
+    private String numeroLinea;
+    private String valor;
+
 
     public void setValor(String valor) {
         this.valor = valor;
     }
 
-    private int numeroLinea;
-    private String valor;
-
-    public Instruccion(String _instruccion, int _numeroLinea, String _valor) {
+    public Instruccion(String _instruccion, String _numeroLinea, String _valor) {
         this.instruccion = _instruccion;
         this.numeroLinea = _numeroLinea;
         this.valor = _valor;
@@ -24,7 +24,7 @@ public class Instruccion {
         return instruccion;
     }
 
-    public int getNumeroLinea() {
+    public String getNumeroLinea() {
         return numeroLinea;
     }
 

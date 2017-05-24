@@ -5,3 +5,12 @@ def foo(a):
         lista = [1,2,3]
     else:
         num = num * 2
+
+def factorial(_numero):
+    if (_numero == 0):
+        return 1
+    else:
+        return _numero * factorial(_numero-1)
+
+def Main():
+    foo()

@@ -97,7 +97,8 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitFuncion(MyParser.FuncionContext ctx) {
 
-        this.AgregarPilaInstrucciones(0, ctx.IDENTIFIER().getText() + "()", " ");
+        this.AgregarPilaInstrucciones(-1, ctx.IDENTIFIER().getText() + "():", " ");
+
         visit(ctx.sequence());
 
         return null;
@@ -477,7 +478,12 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
      */
     private void AgregarPilaInstrucciones(int _linea, String _instruccion, String _valor){
 
-        this.pilaInstrucciones.add(new Instruccion(_instruccion, _linea, _valor));
+        if (_linea == -1) {
+            this.pilaInstrucciones.add(new Instruccion(_instruccion, "", _valor));
+        } else {
+            this.pilaInstrucciones.add(new Instruccion(_instruccion, String.valueOf(_linea) , _valor));
+        }
+
 
     }
 
@@ -485,35 +491,39 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
      * Escribe la pila de instrucciones (lista) en un documento txt...
      */
     private void EscribirPilaDeInstrucciones() throws IOException {
-        System.out.println("Lista....\n");
 
-        for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
-            System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
-                    this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
+        if (this.pilaInstrucciones.get(pilaInstrucciones.size()-2).getInstruccion().equals("Main():")) {
+            for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
+                System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
+                        this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
+
+            }
+
+            File archivo = new File("codigoGenerado.txt"); //Busca el archivo de aqui en adelante empieza a escribir...
+            BufferedWriter bw;
+            if(archivo.exists()) {
+                bw = new BufferedWriter(new FileWriter(archivo));
+                for (int i = 0; i < this.pilaInstrucciones.size()-1; i++) {
+                    bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
+                            this.pilaInstrucciones.get(i).getInstruccion() + " " +
+                            this.pilaInstrucciones.get(i).getValor());
+                    bw.newLine();
+                }
+
+            } else {
+                archivo.createNewFile();
+                bw = new BufferedWriter(new FileWriter(archivo));
+                for (int i = 0; i < this.pilaInstrucciones.size()-1; i++) {
+                    bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
+                            this.pilaInstrucciones.get(i).getInstruccion() + " " +
+                            this.pilaInstrucciones.get(i).getValor());
+                    bw.newLine();
+                }
+            }
+            bw.close();
 
         }
 
-        File archivo = new File("codigoGenerado.txt"); //Busca el archivo de aqui en adelante empieza a escribir...
-        BufferedWriter bw;
-        if(archivo.exists()) {
-            bw = new BufferedWriter(new FileWriter(archivo));
-            for (int i = 0; i < this.pilaInstrucciones.size()-1; i++) {
-                bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
-                        this.pilaInstrucciones.get(i).getInstruccion() + " " +
-                        this.pilaInstrucciones.get(i).getValor());
-                bw.newLine();
-            }
-
-        } else {
-            archivo.createNewFile();
-            bw = new BufferedWriter(new FileWriter(archivo));
-            for (int i = 0; i < this.pilaInstrucciones.size()-1; i++) {
-                bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
-                        this.pilaInstrucciones.get(i).getInstruccion() + " " +
-                        this.pilaInstrucciones.get(i).getValor());
-                bw.newLine();
-            }
-        }
-        bw.close();
+        return;
     }
 }
