@@ -17,7 +17,6 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
 
     private int lineas;
     private ArrayList<Instruccion> pilaInstrucciones;
-    private Instruccion instruccion;
 
 
     @Override
@@ -508,6 +507,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     private void EscribirPilaDeInstrucciones() throws IOException {
 
         if (this.pilaInstrucciones.get(pilaInstrucciones.size()-2).getInstruccion().equals("Main( )")) {
+
             for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
                 System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
                         this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());

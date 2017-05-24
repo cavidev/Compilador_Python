@@ -1,16 +1,8 @@
-def foo(a,b,c):
-    prom = promedio(ventas,ganancias,gastos,compras)
-    if (num < 1):
-        num = 1
-        lista = [1,2,3]
-    else:
-        num = num * 2
 
-def factorial(_numero):
-    if (_numero == 0):
-        return 1
-    else:
-        return _numero * factorial(_numero-1)
+def foo():
+    while num < 2:
+        num = num + 1
+    num = 9*8
 
 def Main():
-    foo()
+    go()
