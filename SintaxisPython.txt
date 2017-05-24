@@ -1,10 +1,6 @@
-a = [1,2,"String"]
-b = a[2] + t
-c = "St"
-
-def funcion(b,l,c):
-    print("Hello")
-    return 2
-
-
-g = funcion(b,l,c)
+def foo(a):
+    num = 3 * 2
+    if (num < 1):
+        num = 1
+    else:
+        num = num * 2

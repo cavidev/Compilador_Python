@@ -840,7 +840,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     }
 
     public void print( Object doc) {
-        this.tpEditor.setErrors(doc.toString());
+        //this.tpEditor.setErrors(doc.toString());
         System.out.println(doc.toString());
     }
 

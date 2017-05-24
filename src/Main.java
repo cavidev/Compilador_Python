@@ -1,6 +1,7 @@
 /**
  * Created by Carlos Mario on 18/3/2017.
  */
+import GeneradorCodigo.GeneradorCodigo;
 import analizador.analizadorContextual;
 import arbol.Arbol;
 import arbol.ArbolSinNodos;
@@ -40,10 +41,13 @@ public class Main {
 
         tree = parser.program();
 
-        ArbolSinNodos arbol = new ArbolSinNodos();
-        arbol.visit(tree);
+        //ArbolSinNodos arbol = new ArbolSinNodos();
+        //arbol.visit(tree);
 
-        analizadorContextual aContextual =  new analizadorContextual();
-        aContextual.visit(tree);
+        //analizadorContextual aContextual =  new analizadorContextual();
+        //aContextual.visit(tree);
+
+        GeneradorCodigo gCode = new GeneradorCodigo();
+        gCode.visit(tree);
     }
 }
