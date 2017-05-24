@@ -97,8 +97,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitFuncion(MyParser.FuncionContext ctx) {
 
-        this.AgregarPilaInstrucciones(-1, ctx.IDENTIFIER().getText() + "():", " ");
-
+        this.AgregarPilaInstrucciones(-1, ctx.IDENTIFIER().getText() + "(" + visit(ctx.argList()).toString() + ")", " ");
         visit(ctx.sequence());
 
         return null;
@@ -107,20 +106,27 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitListaParametros(MyParser.ListaParametrosContext ctx) {
 
-        visit(ctx.moreArgs());
-
-        return null;
+        String primerParametro = ctx.IDENTIFIER().getText();
+        if (ctx.moreArgs().getChildCount() != 0){
+            primerParametro +=  visit(ctx.moreArgs());
+        }
+        return primerParametro;
     }
 
     @Override
     public Object visitListaParametroEOS(MyParser.ListaParametroEOSContext ctx) {
-        return super.visitListaParametroEOS(ctx);
+        return " ";
     }
 
     @Override
     public Object visitMasParametros(MyParser.MasParametrosContext ctx) {
+        String masParametros = ", ";
+        for (int i = 0; i < ctx.IDENTIFIER().size()-1; i++){
+            masParametros += ctx.IDENTIFIER(i).getText() + ", " ;
+        }
+        masParametros += ctx.IDENTIFIER(ctx.IDENTIFIER().size()-1).getText();
 
-        return null;
+        return masParametros;
     }
 
     @Override
@@ -344,6 +350,14 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitDeclaracionFuntionCallExpression(MyParser.DeclaracionFuntionCallExpressionContext ctx) {
 
+        this.AgregarPilaInstrucciones(this.lineas, "LOAD_GLOBAL", ctx.IDENTIFIER().getText());
+        this.lineas++;
+
+        int expresiones = (int) visit(ctx.expressionList());
+
+        this.AgregarPilaInstrucciones(this.lineas, "CALL_FUNCTION", String.valueOf(expresiones));
+        this.lineas++;
+
         return null;
     }
 
@@ -457,6 +471,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitExpresionPrimitivaFunctionCallExpression(MyParser.ExpresionPrimitivaFunctionCallExpressionContext ctx) {
 
+        visit(ctx.functionCallExpression());
         return null;
     }
 
@@ -492,7 +507,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
      */
     private void EscribirPilaDeInstrucciones() throws IOException {
 
-        if (this.pilaInstrucciones.get(pilaInstrucciones.size()-2).getInstruccion().equals("Main():")) {
+        if (this.pilaInstrucciones.get(pilaInstrucciones.size()-2).getInstruccion().equals("Main( )")) {
             for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
                 System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
                         this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
