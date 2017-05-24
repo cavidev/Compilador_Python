@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Compilador_Python">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/intellij-plugin-v4.zip!/" />
+      <root url="jar://$PROJECT_DIR$/antlr-runtime-4.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

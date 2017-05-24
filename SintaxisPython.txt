@@ -1,7 +1,6 @@
 def foo(a):
-    num = 3 * 2 + 4 * 9
+    num = 3
     if (num < 1):
         num = 1
     else:
         num = num * 2
-

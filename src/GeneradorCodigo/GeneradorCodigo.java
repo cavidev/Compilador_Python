@@ -469,7 +469,8 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
      */
     private void EscribirPilaDeInstrucciones() throws IOException {
         System.out.println("Lista....\n");
-        for (int i = 0; i <= this.pilaInstrucciones.size()-1; i++) {
+
+        for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
             System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
                     this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
 
