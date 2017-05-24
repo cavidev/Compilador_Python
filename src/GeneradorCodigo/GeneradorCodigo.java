@@ -134,7 +134,11 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
 
     @Override
     public Object visitWhile(MyParser.WhileContext ctx) {
-        return super.visitWhile(ctx);
+
+        visit(ctx.expression());
+        visit(ctx.sequence());
+
+        return null;
     }
 
     @Override
