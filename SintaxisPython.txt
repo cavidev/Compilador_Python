@@ -4,3 +4,4 @@ def foo(a):
         num = 1
     else:
         num = num * 2
+
