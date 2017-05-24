@@ -1,5 +1,5 @@
 def foo(a):
-    num = 3 * 2
+    num = 3 * 2 + 4 * 9
     if (num < 1):
         num = 1
     else:

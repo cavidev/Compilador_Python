@@ -3,6 +3,10 @@ package GeneradorCodigo;
 import generated.MyParser;
 import generated.MyParserBaseVisitor;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -24,7 +28,11 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
             visit(ctx.statement(i));
         }
 
-        this.EscribirPilaDeInstrucciones();
+        try {
+            this.EscribirPilaDeInstrucciones();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return null;
     }
@@ -248,8 +256,8 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     public Object visitFactorAderencia(MyParser.FactorAderenciaContext ctx) {
 
         for (int i = 0; i <= ctx.multiplicationExpression().size()-1 ; i++) {
-            visit(ctx.signosSumaResta(i));
             visit(ctx.multiplicationExpression(i));
+            visit(ctx.signosSumaResta(i));
         }
 
         return null;
@@ -459,12 +467,35 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     /**
      * Escribe la pila de instrucciones (lista) en un documento txt...
      */
-    private void EscribirPilaDeInstrucciones() {
+    private void EscribirPilaDeInstrucciones() throws IOException {
         System.out.println("Lista....\n");
-        for (int i = 0; i < this.pilaInstrucciones.size()-1; i++) {
+        for (int i = 0; i <= this.pilaInstrucciones.size()-1; i++) {
             System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
                     this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
 
         }
+
+        File archivo = new File("codigoGenerado.txt"); //Busca el archivo de aqui en adelante empieza a escribir...
+        BufferedWriter bw;
+        if(archivo.exists()) {
+            bw = new BufferedWriter(new FileWriter(archivo));
+            for (int i = 0; i < this.pilaInstrucciones.size()-1; i++) {
+                bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
+                        this.pilaInstrucciones.get(i).getInstruccion() + " " +
+                        this.pilaInstrucciones.get(i).getValor());
+                bw.newLine();
+            }
+
+        } else {
+            archivo.createNewFile();
+            bw = new BufferedWriter(new FileWriter(archivo));
+            for (int i = 0; i < this.pilaInstrucciones.size()-1; i++) {
+                bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
+                        this.pilaInstrucciones.get(i).getInstruccion() + " " +
+                        this.pilaInstrucciones.get(i).getValor());
+                bw.newLine();
+            }
+        }
+        bw.close();
     }
 }
