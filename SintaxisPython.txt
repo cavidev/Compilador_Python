@@ -1,4 +1,3 @@
-
 def foo():
     while num < 2:
         num = num + 1

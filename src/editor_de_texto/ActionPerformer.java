@@ -531,7 +531,7 @@ public class ActionPerformer {
             ParseTree tree = parser.program();  //Se ejecuta el parser.
             tpEditor.buildVistaArbol(tree);     //Se arma el ArbolRecorrido de nodos
 
-            AnalizadorContextual.AnalizadorContextual aContextual = new AnalizadorContextual(this.tpEditor);
+            AnalizadorContextual aContextual = new AnalizadorContextual(this.tpEditor);
             aContextual.visit(tree);
 
             System.out.println("Se realizo el analisis sintactico, y se inserto el ArbolRecorrido");

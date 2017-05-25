@@ -2,6 +2,7 @@
  * Created by Carlos Mario on 18/3/2017.
  */
 import GeneradorCodigo.GeneradorCodigo;
+import AnalizadorContextual.*;
 import generated.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -39,8 +40,8 @@ public class Main {
         //ArbolSinNodos ArbolRecorrido = new ArbolSinNodos();
         //ArbolRecorrido.visit(tree);
 
-        //AnalizadorContextual aContextual =  new AnalizadorContextual();
-        //aContextual.visit(tree);
+        AnalizadorContextual aContextual = new AnalizadorContextual();
+        aContextual.visit(tree);
 
         GeneradorCodigo gCode = new GeneradorCodigo();
         gCode.visit(tree);
