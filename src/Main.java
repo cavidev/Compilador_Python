@@ -2,16 +2,11 @@
  * Created by Carlos Mario on 18/3/2017.
  */
 import GeneradorCodigo.GeneradorCodigo;
-import analizador.analizadorContextual;
-import arbol.Arbol;
-import arbol.ArbolSinNodos;
 import generated.*;
-import myExceptions.ExcepcionIndefinido;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.io.FileReader;
-import java.util.List;
 
 /**
  * Clase de inicio de ejecución no implementada en esta solución. La entrada al programa se genera en la clase TPEditor.java
@@ -41,10 +36,10 @@ public class Main {
 
         tree = parser.program();
 
-        //ArbolSinNodos arbol = new ArbolSinNodos();
-        //arbol.visit(tree);
+        //ArbolSinNodos ArbolRecorrido = new ArbolSinNodos();
+        //ArbolRecorrido.visit(tree);
 
-        //analizadorContextual aContextual =  new analizadorContextual();
+        //AnalizadorContextual aContextual =  new AnalizadorContextual();
         //aContextual.visit(tree);
 
         GeneradorCodigo gCode = new GeneradorCodigo();

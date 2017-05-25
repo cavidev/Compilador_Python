@@ -1,4 +1,4 @@
-package analizador;
+package AnalizadorContextual;
 
 import java.util.ArrayList;
 

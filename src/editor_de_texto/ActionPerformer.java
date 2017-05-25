@@ -9,8 +9,7 @@ package editor_de_texto;
  *
  * @author Leidy
  */
-import analizador.analizadorContextual;
-import myExceptions.MyExceptionHandler;
+import AnalizadorContextual.AnalizadorContextual;
 import myExceptions.ParserErrorListener;
 import myExceptions.ScannerErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -530,12 +529,12 @@ public class ActionPerformer {
             //parser.setErrorHandler(errores);    //se meten los errores en el parser.
 
             ParseTree tree = parser.program();  //Se ejecuta el parser.
-            tpEditor.buildVistaArbol(tree);     //Se arma el arbol de nodos
+            tpEditor.buildVistaArbol(tree);     //Se arma el ArbolRecorrido de nodos
 
-            analizadorContextual aContextual = new analizadorContextual(this.tpEditor);
+            AnalizadorContextual.AnalizadorContextual aContextual = new AnalizadorContextual(this.tpEditor);
             aContextual.visit(tree);
 
-            System.out.println("Se realizo el analisis sintactico, y se inserto el arbol");
+            System.out.println("Se realizo el analisis sintactico, y se inserto el ArbolRecorrido");
 
         } catch (IOException e) {
             e.printStackTrace();

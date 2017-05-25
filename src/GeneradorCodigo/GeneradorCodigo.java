@@ -511,9 +511,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
             for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
                 System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
                         this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
-
             }
-
             File archivo = new File("codigoGenerado.txt"); //Busca el archivo de aqui en adelante empieza a escribir...
             BufferedWriter bw;
             if(archivo.exists()) {
@@ -536,9 +534,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
                 }
             }
             bw.close();
-
         }
-
         return;
     }
 }

@@ -1,4 +1,4 @@
-package arbol; /**
+package ArbolRecorrido; /**
  * Created by Carlos Mario on 26/3/2017.
  */
 
@@ -10,14 +10,14 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 /**
- * Esta clase imprime en consola y de manera gráfica un arbol de nodos. Estos nodos son las visitas del parser
+ * Esta clase imprime en consola y de manera gráfica un ArbolRecorrido de nodos. Estos nodos son las visitas del parser
  * implementado en este proyecto, cada nodo nuevo es un tap (consola) o carpeta(GUI), se llevara
  * el control de estos nodos con una variable global cont y un nodo padre para el caso de GUI.
  */
 public class Arbol extends MyParserBaseVisitor<Object> {
 
-    private int cont=0;         //Lleva la cuenta de la cantidad de tap o el tamaño del arbol en que va.
-    private JTree arbolVista;   //instancia de la clase para el arbol en GUI
+    private int cont=0;         //Lleva la cuenta de la cantidad de tap o el tamaño del ArbolRecorrido en que va.
+    private JTree arbolVista;   //instancia de la clase para el ArbolRecorrido en GUI
     DefaultTreeModel modelo;    //instancia del modelo para la clase JTree
     DefaultMutableTreeNode nodoPadre;   //Control de los nodos, guarda el nodo anterior.
 
@@ -32,7 +32,7 @@ public class Arbol extends MyParserBaseVisitor<Object> {
     }
 
     /**
-     * Recibe el arbol JTree de la vista del editor de texto.
+     * Recibe el ArbolRecorrido JTree de la vista del editor de texto.
      * @param arbol
      */
     public void setComponenteArbol(JTree arbol){
