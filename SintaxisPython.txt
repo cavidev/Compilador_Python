@@ -1,16 +1,17 @@
 def foo(a,b,c):
     prom = promedio(ventas,ganancias,gastos,compras)
+    while num + 3 > 2:
+        n = 2
+        l = 3
+    print("Hola")
     if (num < 1):
         num = 1
+        print("Hola")
         lista = [1,2,3]
     else:
         num = num * 2
+        return 2
 
-def factorial(_numero):
-    if (_numero == 0):
-        return 1
-    else:
-        return _numero * factorial(_numero-1)
 
 def Main():
     foo()

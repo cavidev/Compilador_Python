@@ -17,7 +17,6 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
 
     private int lineas;
     private ArrayList<Instruccion> pilaInstrucciones;
-    private Instruccion instruccion;
 
 
     @Override
@@ -66,6 +65,7 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     public Object visitDeclaracionPRINT(MyParser.DeclaracionPRINTContext ctx) {
 
         visit(ctx.printStatement());
+
 
         return null;
     }
@@ -160,20 +160,48 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitWhile(MyParser.WhileContext ctx) {
 
+        String volverLinea = String.valueOf(this.lineas);
+
         visit(ctx.expression());
+
+        this.AgregarPilaInstrucciones(this.lineas, "JUMP_IF_FALSE", " ");
+        this.lineas++;
+
+        Instruccion salto = this.pilaInstrucciones.get(this.pilaInstrucciones.size()-1);
+
         visit(ctx.sequence());
+
+        salto.setValor(String.valueOf(this.lineas + 1));
+
+        this.AgregarPilaInstrucciones(this.lineas, "JUMP_ABSOLUTE", volverLinea);
+        this.lineas++;
 
         return null;
     }
 
     @Override
     public Object visitReturn(MyParser.ReturnContext ctx) {
-        return super.visitReturn(ctx);
+
+        visit(ctx.expression());
+
+        this.AgregarPilaInstrucciones(this.lineas, "RETURN_VALUE", " ");
+        this.lineas++;
+
+        return null;
     }
 
     @Override
     public Object visitPrint(MyParser.PrintContext ctx) {
-        return super.visitPrint(ctx);
+
+        this.AgregarPilaInstrucciones(this.lineas, "LOAD_GLOBAL", "print");
+        this.lineas++;
+
+        visit(ctx.expression());
+
+        this.AgregarPilaInstrucciones(this.lineas, "CALL_FUNCTION", "1");
+        this.lineas++;
+
+        return null;
     }
 
     @Override
@@ -332,18 +360,26 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
         }
     }
 
+    //todo: Pendiente
     @Override
     public Object visitExpresionElemento(MyParser.ExpresionElementoContext ctx) {
 
         visit(ctx.primitiveExpression());
-        //Falta visitar el elmentsAccess.
+
+        if (ctx.elementAccess().children != null){
+            visit(ctx.elementAccess());
+            this.AgregarPilaInstrucciones(this.lineas, "BINARY_SUBSCR", " ");
+            this.lineas++;
+
+        }
 
         return null;
     }
 
+    //todo: Pendiente
     @Override
     public Object visitAccesoElemento(MyParser.AccesoElementoContext ctx) {
-
+        visit(ctx.expression(0));
         return null;
     }
 
