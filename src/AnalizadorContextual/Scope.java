@@ -1,6 +1,4 @@
-package analizador;
-
-import java.util.ArrayList;
+package AnalizadorContextual;
 
 /**
  * Carlos Mario Villafuerte Díaz

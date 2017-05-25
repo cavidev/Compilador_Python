@@ -1,25 +1,16 @@
-package analizador;
+package AnalizadorContextual;
 
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
-import com.sun.org.apache.bcel.internal.generic.RET;
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import editor_de_texto.TPEditor;
 import generated.MyParser;
 import generated.MyParserBaseVisitor;
-import jdk.nashorn.internal.parser.Lexer;
-import myExceptions.ExcepcionIndefinido;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
  * Created by dell on 22/4/2017.
  */
-public class analizadorContextual extends MyParserBaseVisitor<Object>  {
+public class AnalizadorContextual extends MyParserBaseVisitor<Object>  {
 
     private int VACIO = 0, INT = 1, STRING = 2, CHAR = 3, LISTA = 4,
             INDEFINIDA = 5, BOOLEAN = 6;
@@ -42,7 +33,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
     private ArrayList<Object> listaSimbolosAsignacion; //lista de los simbolos en las asignaciones.
 
 
-    public analizadorContextual(TPEditor ventana) {
+    public AnalizadorContextual(TPEditor ventana) {
         this.tpEditor = ventana;
         this.tablaSimbolos = new TablaSimbolos();
         this.scopes = new ArrayList<>();
@@ -57,7 +48,7 @@ public class analizadorContextual extends MyParserBaseVisitor<Object>  {
         this.tiposLista = new ArrayList<>();
     }
 
-    public analizadorContextual() {
+    public AnalizadorContextual() {
         this.tablaSimbolos = new TablaSimbolos();
         this.scopes = new ArrayList<>();
         this.listaFunciones = new ArrayList<>();

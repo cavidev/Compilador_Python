@@ -1,4 +1,4 @@
-package arbol;
+package ArbolRecorrido;
 
 import generated.MyParser;
 import generated.MyParserBaseVisitor;
@@ -6,12 +6,12 @@ import generated.MyParserBaseVisitor;
 import javax.swing.tree.DefaultTreeModel;
 
 /**
- * Clase generada para realizar pruebas en cosola, imprime un arbol de nodos con tab de las visitas hechas por
+ * Clase generada para realizar pruebas en cosola, imprime un ArbolRecorrido de nodos con tab de las visitas hechas por
  * el parse en su recorrido por el archivo.
  */
 public class ArbolSinNodos extends MyParserBaseVisitor<Object> {
-    private int cont=0;     // Lleva la cuenta de la cantidad de tap o el tamaño del arbol en que va.
-    private DefaultTreeModel modelo; //contiene el nombre de la raiz del arbol que se va a generar.
+    private int cont=0;     // Lleva la cuenta de la cantidad de tap o el tamaño del ArbolRecorrido en que va.
+    private DefaultTreeModel modelo; //contiene el nombre de la raiz del ArbolRecorrido que se va a generar.
 
     /**
      * imprime la cantidad de tap, por donde va el nodo,

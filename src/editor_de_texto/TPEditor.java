@@ -11,10 +11,6 @@ package editor_de_texto;
  */
 //package textpademo;
  
-import generated.MyParser;
-import generated.MyScanner;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.awt.*;
@@ -26,8 +22,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -52,7 +46,7 @@ public class TPEditor {
     private JTextArea errorArea;      //Instancia de JTextArea (área donde se escriben los resultados de la compilacion.)
     private JPopupMenu jPopupMenu;    //instancia de JPopupMenu (menú emergente)
     private JPanel statusBar;         //instancia de JPanel (barra de estado)
-    private JPanel vistaArbol;        //instancia de JPanel (donde se ubica el arbol de nodos)
+    private JPanel vistaArbol;        //instancia de JPanel (donde se ubica el ArbolRecorrido de nodos)
     private JPanel resultsPanel;      //instancia de JPanel (donde se ubica los resultados de la compilacion, panel.)
  
     private JCheckBoxMenuItem itemLineWrap;         //instancias de algunos items de menú que necesitan ser accesibles
@@ -66,7 +60,7 @@ public class TPEditor {
  
     private JButton buttonUndo;    //instancias de algunos botones que necesitan ser accesibles
     private JButton buttonRedo;
-    private JTree arbolVista;     //se crea la instancia del arbol de la vista;       //Intancia del arbol de nodos.
+    private JTree arbolVista;     //se crea la instancia del ArbolRecorrido de la vista;       //Intancia del ArbolRecorrido de nodos.
  
     private JLabel sbFilePath;    //etiqueta que muestra la ubicación del archivo actual
     private JLabel sbFileSize;    //etiqueta que muestra el tamaño del archivo actual
@@ -149,8 +143,8 @@ public class TPEditor {
 
 
         vistaArbol = new JPanel();
-        c.add(new JScrollPane(vistaArbol), BorderLayout.EAST);                      //añade la vista del arbol, orientación ESTE
-        arbolVista = new JTree();                   //se crea la instancia del arbol de la vista
+        c.add(new JScrollPane(vistaArbol), BorderLayout.EAST);                      //añade la vista del ArbolRecorrido, orientación ESTE
+        arbolVista = new JTree();                   //se crea la instancia del ArbolRecorrido de la vista
  
         //configura el JFrame con un tamaño inicial proporcionado con respecto a la pantalla
         Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
@@ -484,34 +478,34 @@ public class TPEditor {
     }
 
     /**
-     * Construye el panel para la vista del arbol.
+     * Construye el panel para la vista del ArbolRecorrido.
      */
     public void buildVistaArbol(ParseTree tree) {
 
         vistaArbol.setSize(1000,1000); //se le da esto por varas.
 
-        arbol.Arbol recorrido = new arbol.Arbol(); //se hace la instancia que recorre el arbol
-        recorrido.setComponenteArbol(arbolVista);   //se setea la intancia del arbol de la vista en el recorrido del arbol
+        ArbolRecorrido.Arbol recorrido = new ArbolRecorrido.Arbol(); //se hace la instancia que recorre el ArbolRecorrido
+        recorrido.setComponenteArbol(arbolVista);   //se setea la intancia del ArbolRecorrido de la vista en el recorrido del ArbolRecorrido
 
         recorrido.visit(tree);  //Se manda a llamar al metodo de visita.
 
-        vistaArbol.add(arbolVista);     //Se setea el arbol de la vista en el panel del arbol
+        vistaArbol.add(arbolVista);     //Se setea el ArbolRecorrido de la vista en el panel del ArbolRecorrido
 
 
 
     }
     private JTree crearArbol() {
-/**Construimos los nodos del arbol que seran ramas u hojas*/
-/**Definimos cual será el directorio principal o la raiz de nuestro arbol*/
+/**Construimos los nodos del ArbolRecorrido que seran ramas u hojas*/
+/**Definimos cual será el directorio principal o la raiz de nuestro ArbolRecorrido*/
         DefaultMutableTreeNode carpetaRaiz = new DefaultMutableTreeNode("Carpeta");
         /**Definimos el modelo donde se agregaran los nodos*/
         DefaultTreeModel modelo = new DefaultTreeModel(carpetaRaiz);
-        /**agregamos el modelo al arbol, donde previamente establecimos la raiz*/
+        /**agregamos el modelo al ArbolRecorrido, donde previamente establecimos la raiz*/
         JTree arbol = new JTree(modelo);
         /**definimos los eventos*/
-        //arbol.getSelectionModel().addTreeSelectionListener(this);
+        //ArbolRecorrido.getSelectionModel().addTreeSelectionListener(this);
 
-        /**Definimos mas nodos del arbol y se lo agregamos al modelo*/
+        /**Definimos mas nodos del ArbolRecorrido y se lo agregamos al modelo*/
         DefaultMutableTreeNode carpeta2 = new DefaultMutableTreeNode("SubCarpeta");
         /**Definimos donde se agrega el nodo, dentro de que rama y que posicion*/
         modelo.insertNodeInto(carpeta2, carpetaRaiz, 0);
@@ -521,7 +515,7 @@ public class TPEditor {
         DefaultMutableTreeNode archivop = new DefaultMutableTreeNode("Archivo3");
         modelo.insertNodeInto(archivop, carpeta3, 0);
 
-        /**Creamos las hojas del arbol*/
+        /**Creamos las hojas del ArbolRecorrido*/
         DefaultMutableTreeNode archivo3 = new DefaultMutableTreeNode("Archivo3");
         DefaultMutableTreeNode archivo4 = new DefaultMutableTreeNode("Archivo4");
         DefaultMutableTreeNode archivo5 = new DefaultMutableTreeNode("Archivo5");
