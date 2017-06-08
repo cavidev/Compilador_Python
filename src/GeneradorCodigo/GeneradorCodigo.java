@@ -558,36 +558,33 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
      * Escribe la pila de instrucciones (lista) en un documento txt...
      */
     private void EscribirPilaDeInstrucciones() throws IOException {
-
-        if (this.pilaInstrucciones.get(pilaInstrucciones.size()-3).getInstruccion().equals("Main( )")) {
-
-            for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
-                System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
-                        this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
-            }
-            File archivo = new File("codigoGenerado.txt"); //Busca el archivo de aqui en adelante empieza a escribir...
-            BufferedWriter bw;
-            if(archivo.exists()) {
-                bw = new BufferedWriter(new FileWriter(archivo));
-                for (int i = 0; i <= this.pilaInstrucciones.size()-1; i++) {
-                    bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
-                            this.pilaInstrucciones.get(i).getInstruccion() + " " +
-                            this.pilaInstrucciones.get(i).getValor());
-                    bw.newLine();
-                }
-
-            } else {
-                archivo.createNewFile();
-                bw = new BufferedWriter(new FileWriter(archivo));
-                for (int i = 0; i <= this.pilaInstrucciones.size()-1; i++) {
-                    bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
-                            this.pilaInstrucciones.get(i).getInstruccion() + " " +
-                            this.pilaInstrucciones.get(i).getValor());
-                    bw.newLine();
-                }
-            }
-            bw.close();
+        
+        for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
+            System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
+                    this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
         }
+        File archivo = new File("codigoGenerado.txt"); //Busca el archivo de aqui en adelante empieza a escribir...
+        BufferedWriter bw;
+        if(archivo.exists()) {
+            bw = new BufferedWriter(new FileWriter(archivo));
+            for (int i = 0; i <= this.pilaInstrucciones.size()-1; i++) {
+                bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
+                        this.pilaInstrucciones.get(i).getInstruccion() + " " +
+                        this.pilaInstrucciones.get(i).getValor());
+                bw.newLine();
+            }
+
+        } else {
+            archivo.createNewFile();
+            bw = new BufferedWriter(new FileWriter(archivo));
+            for (int i = 0; i <= this.pilaInstrucciones.size()-1; i++) {
+                bw.write(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
+                        this.pilaInstrucciones.get(i).getInstruccion() + " " +
+                        this.pilaInstrucciones.get(i).getValor());
+                bw.newLine();
+            }
+        }
+        bw.close();
         return;
     }
 }
