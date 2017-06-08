@@ -516,6 +516,14 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
     @Override
     public Object visitExpresionPrimitivaLEN_PIZQ_EX_PDER(MyParser.ExpresionPrimitivaLEN_PIZQ_EX_PDERContext ctx) {
 
+        this.AgregarPilaInstrucciones(this.lineas, "LOAD_GLOBAL", "len" );
+        this.lineas++;
+
+        visit(ctx.expression());
+
+        this.AgregarPilaInstrucciones(this.lineas, "CALL_FUNCTION", "1");
+        this.lineas++;
+
         return null;
 
     }
@@ -558,7 +566,6 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
      * Escribe la pila de instrucciones (lista) en un documento txt...
      */
     private void EscribirPilaDeInstrucciones() throws IOException {
-        
         for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
             System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
                     this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());

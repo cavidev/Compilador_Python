@@ -7,4 +7,8 @@ def comparacion(num1, num2):
         print("No son iguales")
 
 def Main():
+<<<<<<< HEAD
     comparacion(num1, num2)
+=======
+    foo(1,2,3)
+>>>>>>> c40cfd677b97cb8a0fca7da08d6465c82d812220
