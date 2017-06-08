@@ -40,8 +40,8 @@ public class Main {
         //ArbolSinNodos ArbolRecorrido = new ArbolSinNodos();
         //ArbolRecorrido.visit(tree);
 
-        AnalizadorContextual aContextual = new AnalizadorContextual();
-        aContextual.visit(tree);
+        //AnalizadorContextual aContextual = new AnalizadorContextual();
+        //aContextual.visit(tree);
 
         GeneradorCodigo gCode = new GeneradorCodigo();
         gCode.visit(tree);

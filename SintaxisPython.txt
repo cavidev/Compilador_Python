@@ -14,4 +14,4 @@ def foo(a,b,c):
 
 
 def Main():
-    go()
+    foo(1,2,3)
