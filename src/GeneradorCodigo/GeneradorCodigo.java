@@ -565,8 +565,6 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
      * Escribe la pila de instrucciones (lista) en un documento txt...
      */
     private void EscribirPilaDeInstrucciones() throws IOException {
-
-
         for (int i = 0; i < this.pilaInstrucciones.size(); i++) {
             System.out.println(this.pilaInstrucciones.get(i).getNumeroLinea()+" "+
                     this.pilaInstrucciones.get(i).getInstruccion() + " " +  this.pilaInstrucciones.get(i).getValor());
@@ -593,7 +591,6 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
             }
         }
         bw.close();
-
         return;
     }
 }

@@ -1,3 +1,4 @@
+
 def foo(a,b,c):
     prom = promedio(ventas,ganancias,gastos,compras)
     prom = lista[1+4*4]
@@ -9,10 +10,9 @@ def foo(a,b,c):
         num = 1
         print("Hola")
         lista = [1,2,3]
-    else:
-        num = num * 2
-        return 2
 
+    else:
+        return 1
 
 def Main():
     foo(1,2,3)
@@ -20,3 +20,6 @@ def Main():
 """ Copiar y pegar codigo puede no funcionar correctamente por errores que puedan generarse en las identaciones.
 Tiene que escribirse el codigo fuente para que funcione correctamente. Se pueden utilizar los archivos de prueba accediendo a Main
 y cambiando la ruta de acceso por uno de los 5 archivos que se encuentran en el paquete Pruebas """
+
+
+
