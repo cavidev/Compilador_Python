@@ -385,7 +385,6 @@ public class GeneradorCodigo extends MyParserBaseVisitor<Object> {
         return null;
     }
 
-    //todo: Pendiente
     @Override
     public Object visitAccesoElemento(MyParser.AccesoElementoContext ctx) {
         visit(ctx.expression(0));

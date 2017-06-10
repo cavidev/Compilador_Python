@@ -1,0 +1,9 @@
+def recursivo(num):
+    if (num == 0):
+        return 0
+    else:
+        recursivo(num - 1)
+        print(num)
+
+def Main():
+    recursivo(num)

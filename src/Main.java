@@ -21,6 +21,7 @@ public class Main {
         MyParser parser = null;
 
         try {
+            //todo: Para acceder a los archivos de prueba. usar la ruta Pruebas/nombreArchivo.txt. Ej: Pruebas/Prueba1.txt
             ANTLRInputStream input = new ANTLRInputStream( new FileReader("SintaxisPython.txt") );
             scanner = new MyScanner(input);
         }

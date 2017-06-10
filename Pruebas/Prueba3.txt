@@ -1,0 +1,20 @@
+def ifAnidados():
+    if (num == 1):
+        num = num + 1
+        if (num == 2):
+            num = num + 1
+            if (num == 3):
+                num = num + 1
+                if (num == 4):
+                    num = num + 1
+                else:
+                    num = num - 1
+            else:
+                num = num - 1
+        else:
+            num = num - 1
+    else:
+        num = num - 1
+        
+def Main():
+    ifAnidados()
