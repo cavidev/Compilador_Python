@@ -10,6 +10,7 @@ package editor_de_texto;
  * @author Leidy
  */
 import AnalizadorContextual.AnalizadorContextual;
+import GeneradorCodigo.GeneradorCodigo;
 import myExceptions.ParserErrorListener;
 import myExceptions.ScannerErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -534,7 +535,8 @@ public class ActionPerformer {
             AnalizadorContextual aContextual = new AnalizadorContextual(this.tpEditor);
             aContextual.visit(tree);
 
-            System.out.println("Se realizo el analisis sintactico, y se inserto el ArbolRecorrido");
+            GeneradorCodigo gCode = new GeneradorCodigo();
+            gCode.visit(tree);
 
         } catch (IOException e) {
             e.printStackTrace();
